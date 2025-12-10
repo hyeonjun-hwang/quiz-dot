@@ -1,0 +1,8 @@
+{
+  "imports": {
+    "@langchain/openai": "npm:@langchain/openai@0.0.31",
+    "@langchain/core/prompts": "npm:@langchain/core@0.1.34/prompts",
+    "zod": "npm:zod@3.22.4",
+    "std/": "https://deno.land/std@0.168.0/"
+  }
+}
