@@ -6,8 +6,11 @@ const quizItemSchema = z.object({
   id: z.number().describe("문제 번호 (1부터 시작)"),
   question: z.string().describe("퀴즈 문제 내용"),
   // 객관식일 때만 값이 있고, 나머지는 빈 배열이거나 null이어야 함
-  options: z.array(z.string()).optional().describe("객관식 보기 (4~5개). OX나 단답형은 빈 배열"),
-  answer: z.string().describe("정답 텍스트 (OX는 'O' 또는 'X')"),
+  options: z
+    .array(z.string())
+    .optional()
+    .describe("객관식 보기(5개). 단답형은 빈 배열"),
+  answer: z.string().describe("정답 텍스트"),
   explanation: z.string().describe("정답에 대한 상세 해설 및 근거"),
 });
 
