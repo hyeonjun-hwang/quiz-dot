@@ -22,6 +22,7 @@ function App() {
           <AccordionContent>열었다 닫았다 가능해요</AccordionContent>
         </AccordionItem>
       </Accordion>
+      <p>깃허브 업로드 테스트</p>
     </>
   );
 }
