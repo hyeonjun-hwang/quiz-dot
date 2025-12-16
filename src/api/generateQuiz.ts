@@ -1,4 +1,4 @@
-// src/api/generateQuiz.ts (API 호출 함수)
+// src/api/generateQuiz.ts (edge function 호출 함수)
 
 import { supabase } from "@/utils/supabase"; // 위에서 만든 클라이언트
 import { quizResponseSchema } from "../../supabase/functions/generate-quiz/schemas/quizSchema"; // AI가 반환할 TypeScript 타입
@@ -7,8 +7,8 @@ import type z from "zod";
 /**
  * 퀴즈 생성 요청에 필요한 설정 타입
  * @param text - 사용자가 입력한 학습 자료 텍스트
- * @param type - 퀴즈 유형 ('multiple_choice' 등)
- * @param count - 문제 개수
+ * @param type - 퀴즈 유형 (객관식 : 'multiple_choice', 단답형 : 'short_answer')
+ * @param count - 문제 개수 (5~10개) 뭔가를 수정함!
  * @param difficulty - 난이도 ('hard', 'medium', 'easy')
  */
 interface QuizRequestSchema {
@@ -30,7 +30,7 @@ type QuizResponseSchema = z.infer<typeof quizResponseSchema>;
 export async function generateQuiz(
   quizRequest: QuizRequestSchema
 ): Promise<QuizResponseSchema> {
-  // 현재 로그인된 유저의 session을 가져옴 (세션 자동 관리) -> zustand에서 관리하는 auth 작업되면 거기서 session을 가져오기 (추후 수정 필요)
+  // 현재 로그인된 유저의 session을 가져옴 (세션 자동 관리) → zustand에서 관리하는 auth 작업되면 거기서 session을 가져오기 (추후 수정 필요)
   const {
     data: { session },
   } = await supabase.auth.getSession();
