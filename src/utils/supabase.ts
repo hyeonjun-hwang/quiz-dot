@@ -6,4 +6,8 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-export { supabase }
+// Extract project ID from URL
+const projectId = supabaseUrl?.split('//')[1]?.split('.')[0] || '';
+const publicAnonKey = supabaseKey;
+
+export { supabase, projectId, publicAnonKey }
