@@ -1,5 +1,5 @@
 import { Menu } from "lucide-react";
-import { Logo } from "./logo";
+import { Logo } from "./Logo";
 import { Button } from "./ui/button";
 
 interface HeaderProps {

@@ -113,6 +113,9 @@ export function QuizCreation({
       return;
     }
 
+    // 로딩 페이지로 이동
+    navigate("/summary-loading");
+
     setLoading(true);
 
     try {

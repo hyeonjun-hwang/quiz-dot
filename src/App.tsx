@@ -1,5 +1,7 @@
+import Home from "./pages/Home";
+
 function App() {
-  return <div>테스트입니다</div>;
+  return <Home />;
 }
 
 export default App;
