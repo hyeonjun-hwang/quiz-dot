@@ -145,14 +145,14 @@ export function SummaryLoader() {
         </div>
         
         {/* 처리 단계 */}
-        <div className="mt-6 space-y-2">
+        <div className="mt-6 space-y-2 flex flex-col items-center">
           {["문서 읽기", "핵심 내용 추출", "요약 생성"].map((step, index) => (
             <motion.div
               key={step}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.2 }}
-              className="flex items-center gap-3"
+              className="flex items-center justify-center gap-3"
             >
               <motion.div
                 animate={{
