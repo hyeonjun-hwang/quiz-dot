@@ -1,5 +1,12 @@
-function App() {
-  return <div>App</div>;
-}
+import { HistoryPage } from "./pages/HistoryPage";
 
-export default App;
+import { Toaster } from "./components/ui/sonner";
+
+export default function App() {
+  return (
+    <>
+      <Toaster />
+      <HistoryPage />
+    </>
+  );
+}
