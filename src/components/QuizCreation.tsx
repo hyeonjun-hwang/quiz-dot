@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
@@ -7,8 +8,8 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Upload, Sparkles, Loader2 } from "lucide-react";
-import { toast } from "sonner@2.0.3";
-import { projectId, publicAnonKey } from "../utils/supabase/info";
+import { toast } from "sonner";
+import { projectId, publicAnonKey } from "../utils/supabase";
 
 interface QuizCreationProps {
   accessToken: string;
@@ -23,6 +24,7 @@ export function QuizCreation({
   remainingQuizzes,
   onUpgradeNeeded,
 }: QuizCreationProps) {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("quiz");
   const [text, setText] = useState("");
   const [pdfFile, setPdfFile] = useState<File | null>(null);
@@ -62,6 +64,9 @@ export function QuizCreation({
       onUpgradeNeeded();
       return;
     }
+
+    // 로딩 페이지로 이동
+    navigate("/quiz-loading");
 
     setLoading(true);
 

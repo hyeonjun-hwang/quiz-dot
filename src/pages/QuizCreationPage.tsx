@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { Header } from "@/components/Header";
 import { QuizCreation } from "@/components/QuizCreation";
+import { SideMenu } from "@/components/SideMenu";
+
 
 export function QuizCreationPage() {
   const [sideMenuOpen, setSideMenuOpen] = useState(false);
