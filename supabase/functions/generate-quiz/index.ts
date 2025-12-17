@@ -31,7 +31,7 @@ serve(async (req) => {
     });
   }
 
-  const { text, type, count, difficulty } = data;
+  const { text, type, count, difficulty, failedQuestions } = data;
 
   // 3. req body 입력값 검증
   if (!text || !type || !count || !difficulty) {
@@ -81,7 +81,8 @@ serve(async (req) => {
   try {
     const result = await generateQuizWithLangChain(
       text,
-      { type, count, difficulty }
+      { type, count, difficulty },
+      failedQuestions
       // userId
     );
 

@@ -1,3 +1,4 @@
+import { Header } from "@/components/Header";
 import { QuizCreation } from "@/components/QuizCreation";
 
 export function QuizCreationPage() {
@@ -5,7 +6,7 @@ export function QuizCreationPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader onMenuClick={() => setSideMenuOpen(true)} />
+      <Header onMenuClick={() => setSideMenuOpen(true)} />
       <QuizCreation
         accessToken="demo-token"
         onQuizGenerated={() => {}}
