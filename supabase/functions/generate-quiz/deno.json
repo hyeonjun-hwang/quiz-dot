@@ -1,7 +1,11 @@
 {
   "imports": {
     "@langchain/openai": "npm:@langchain/openai@0.0.31",
-    "@langchain/core/prompts": "npm:@langchain/core@0.1.34/prompts",
+    "@langchain/core": "npm:@langchain/core@0.1.63",
+    "@langchain/core/prompts": "npm:@langchain/core@0.1.63/prompts",
+    "@langchain/core/messages": "npm:@langchain/core@0.1.63/messages",
+    "@langchain/core/runnables": "npm:@langchain/core@0.1.63/runnables",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.87.1",
     "zod": "npm:zod@3.22.4",
     "std/": "https://deno.land/std@0.168.0/"
   }
