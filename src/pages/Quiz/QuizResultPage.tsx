@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { Header } from "../../components/Header";
 import { QuizResult, type QuizResultData } from "../../components/QuizResult";
 import { SideMenu } from "../../components/SideMenu";
@@ -43,7 +44,13 @@ const sampleQuizResult: QuizResultData = {
 };
 
 export function QuizResultPage() {
+  const navigate = useNavigate();
   const [sideMenuOpen, setSideMenuOpen] = useState(false);
+
+  const handleBackToHome = () => {
+    // 홈(퀴즈 생성 페이지)로 이동
+    navigate("/");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -51,7 +58,7 @@ export function QuizResultPage() {
       <QuizResult
         result={sampleQuizResult}
         onRetryWrong={() => {}}
-        onBackToHome={() => {}}
+        onBackToHome={handleBackToHome}
       />
       
       <SideMenu
