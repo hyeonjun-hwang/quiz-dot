@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { supabase } from "@/utils/supabase";
-
+import { generateQuiz } from "@/api/generateQuiz"; // 분리된 API 함수
+import { useAuthStore } from "./auth"; // 유저 한도 갱신용
 // --- 1. Supabase 'users' 테이블 기반 사용자 정보 구조 ---
 // 이 정보는 useAuthStore에서 관리, 퀴즈 도메인의 의존성 위해 주석 처리
 
@@ -29,12 +30,13 @@ export interface QuizQuestionContent {
 export interface ActiveQuiz {
   quizId: string; // Supabase quizzes.id (DB PK)
   title: string;
+  summary?: string; // quizzes.summary (퀴즈 요약)
   type: string; // quizzes.type(퀴즈 유형)
   difficulty: string; // quizzes.difficulty(퀴즈 난이도)
   questions: QuizQuestionContent[]; // quizzes.quiz_content (JSONB)
 }
 
-// --- 4. 퀴즈 풀이 중 사용자가 제출한 답변 기록 (세션 내부) ---
+// --- 4. 퀴즈 풀이 중 사용자가 제출한 답변 기록  ---
 export interface UserAnswer {
   questionId: string; // 문제 ID
   userSelectedAnswer: string; // 사용자가 선택/입력한 답변
@@ -78,7 +80,6 @@ interface QuizStore {
 
   // 문제가 아닌 생성 요청 데이터를 받음
   saveAndStartQuiz: (
-    userId: string,
     payload: {
       title?: string;
       difficulty: string;
@@ -88,15 +89,11 @@ interface QuizStore {
   ) => Promise<void>;
 
   // 퀴즈 풀이 중 특정 문제에 대한 답변을 제출하고 기록합니다.
-  submitAnswer: (
-    questionId: string, // 문제 ID
-    answer: string, // 사용자가 선택/입력한 답변
-    isCorrect: boolean // 정답
-  ) => void;
+  submitAnswer: (questionId: string, answer: string, isCorrect: boolean) => void;
 
   // 풀이 완료 후, 결과를 계산하여 DB(quiz_submissions)에 저장하고 세션을 종료합니다.
   submitSession: (userId: string) => Promise<void>;
-
+  
   // 사용자 학습 기록 목록을 DB에서 조회하여 records 상태를 업데이트합니다.
   fetchRecords: (userId: string) => Promise<void>;
 }
@@ -113,51 +110,88 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
 
   // --- 액션 구현 ---
 
-  // 1. 퀴즈 저장 및 세션 시작 액션
-  saveAndStartQuiz: async (userId, payload) => {
+  // 1. 퀴즈 생성 및 전역 상태 저장
+  saveAndStartQuiz: async (payload) => {
+    // 1.1 사전 체크 시작
+  const { user } = useAuthStore.getState();
+    // 1.2 로그인체크
+  if (!user) {
+    set({ error: "로그인이 필요한 서비스입니다." });
+    return;
+  }
+  // 1.3 한도 체크 (클라이언트 측 선제 차단)
+ if (user.quiz_count_today >= user.quiz_limit_daily) {
+    set({ 
+      error: `오늘 생성 가능한 퀴즈 한도(${user.quiz_limit_daily}회)를 모두 사용하셨습니다. 내일 다시 시도해주세요!` 
+    });
+    return; 
+  }
+    // 1.4 로딩 시작 및 에러 초기화
     set({ isGenerating: true, error: null });
 
-    /*
-     * 1.1. 퀴즈 생성 전: users 테이블에서 userId의 quiz_count_today와 quiz_limit_daily를 비교하여
-     * 한도를 초과했는지 체크하고, 초과했다면 에러 메세지 설정 후 종료 [서버에서 처리]
-     
-     * 1.2. 퀴즈 생성 후: quizzes 테이블 저장이 성공하면, users 테이블의 quiz_count_today를 +1 업데이트해야 합니다.
-     * 로직은 서버에서 처리 
-     */
-
     try {
-      // 통합 서버 API 호출 (Edge Function)
-      // 1.3. 서버 API가 퀴즈 생성 + 한도 체크 + DB 저장을 한 번에 수행
-      const { data, error } = await supabase.functions.invoke("generate-quiz", {
-        body: { userId, ...payload },
+      // 1.5 AuthStore에서 현재 로그인된 유저 ID 가져오기.
+      const userId = useAuthStore.getState().user?.id;
+
+      // 1.6 로그인 체크
+      if (!userId) {
+        throw new Error("로그인이 필요한 서비스입니다.");
+      }
+      // 1.7 외부 API 함수 호출
+      const data = await generateQuiz({
+        text: payload.content,
+        type: payload.type,
+        difficulty: payload.difficulty,
+        count: 10, // 고정 문제 수 
       });
 
-      if (error) throw new Error(error.message);
-      // 1.4. [users 테이블 업데이트] 퀴즈 저장 성공 시, 오늘 생성 횟수 증가
-      // 이 코드는 users 테이블에 접근해야 하므로 실제 useAuthStore에서 진행
+      // 1.8 API 성공 후, 다른 전역 상태(유저 한도) 동기화
+      await useAuthStore.getState().refreshUserProfile();
 
-      // 1.5. 저장 성공 시, activeQuiz 상태 설정 (풀이 세션 시작)
+    // 1.9 API 응답(data.quizzes)을 UI 상태(questions)로 매핑
+    const mappedQuestions: QuizQuestionContent[] = data.quizzes.map((item) => ({
+    // id가 API에서 number로 넘어올 경우를 대비해 문자열로 변환
+    id: String(item.id), 
+  
+   // 1.9.1 질문과 해설을 합쳐서 questionText에 저장
+   questionText: item.explanation 
+    ? `${item.question}\n\n[해설]: ${item.explanation}` 
+    : item.question,
+    
+   // 1.9.2 payload에서 전달받은 타입 유지 (multiple_choice 등)
+   type: payload.type as "multiple_choice" | "short_answer",
+  
+  // 1.9.3 options가 undefined일 수 있으므로 빈 배열로 기본값 처리
+   options: item.options || [],
+  
+   // 1.9.4 API의 answer를 스토어의 correctAnswer로 매핑
+   correctAnswer: item.answer,
+}));
+
+      // 1.5. 전역 상태(ActiveQuiz) 업데이트
       set({
         activeQuiz: {
-          quizId: data.id, // DB PK (UUID) 사용
-          title: data.title,
-          type: data.type,
-          difficulty: data.difficulty,
-          questions: data.quiz_content as QuizQuestionContent[],
+          // data.id가 없을 경우를 대비해 임시 ID 부여 (실제 응답값 확인 필요)
+          quizId: (data as any).id || (data as any).quiz_id || `temp_${Date.now()}`,
+          title: payload.title || "새로운 학습 퀴즈",
+          summary: data.summary, // 요약 부분 확인
+          type: payload.type,
+          difficulty: payload.difficulty,
+          questions: mappedQuestions,
         },
-        sessionAnswers: [],
+        sessionAnswers: [], // 새 퀴즈 시작 시 답변 초기화
         isGenerating: false,
       });
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "퀴즈 저장 및 세션 시작 중 오류 발생 (한도 초과 또는 DB 오류)";
-      set({ error: errorMessage, isGenerating: false });
+
+    } catch (err: any) {
+      set({ 
+        error: err.message || "퀴즈 생성 중 오류가 발생했습니다.", 
+        isGenerating: false 
+      });
     }
   },
 
-  // 2. 답변 제출 액션
+  // 2. 답변 제출 액션 (로컬 상태에만 저장)
   submitAnswer: (questionId, answer, isCorrect) =>
     set((state) => {
       // 답변은 중복되지 않도록 기존 답변을 제거하고 새로운 답변을 추가하여 최신 답변만 유지
@@ -172,7 +206,7 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
       };
     }),
 
-  // 3. 풀이 결과 제출 (submissions 테이블에 저장) 액션
+  // 3. 풀이 결과 제출 (supabase submissions 테이블에 저장)
   submitSession: async (userId) => {
     const { activeQuiz, sessionAnswers } = get();
 
