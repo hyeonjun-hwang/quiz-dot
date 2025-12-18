@@ -92,14 +92,14 @@ export function QuizGeneratingLoader() {
       </motion.div>
 
       {/* 진행 단계 표시 */}
-      <div className="mt-8 space-y-3 w-full max-w-sm">
+      <div className="mt-8 space-y-3 w-full max-w-sm flex flex-col items-center">
         {["자료 분석 중", "문제 생성 중", "최적화 중"].map((step, index) => (
           <motion.div
             key={step}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.3 }}
-            className="flex items-center gap-3"
+            className="flex items-center justify-center gap-3"
           >
             <motion.div
               animate={{
