@@ -2,34 +2,34 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { quizResponseSchema } from "../schemas/quizSchema.ts"; // 위에서 만든 스키마
-// import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 
 export async function generateQuizWithLangChain(
   text: string,
   config: { type: string; count: number; difficulty: string },
+  userId: string, // DB 저장을 위한 유저 ID
   failedQuestions?: string[] // 오답 복습 시에만 전달되는 오답 문제 목록
-  // userId: string // DB 저장을 위한 유저 ID
 ) {
   // Deno 환경에서는 Deno.env.get()으로 환경 변수를 가져와야 함
   const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
-  // // Supabase Client 초기화 (SERVICE_ROLE_KEY로 DB 접근)
-  // const supabaseClient = createClient(
-  //   Deno.env.get("SUPABASE_URL")!,
-  //   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-  // );
+  // Supabase Client 초기화 (SERVICE_ROLE_KEY로 DB 접근)
+  const supabaseClient = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
 
-  // // 유저의 퀴즈 생성 제한 조회
-  // const { data: user, error: userError } = await supabaseClient
-  //   .from("users")
-  //   .select("quiz_count_today, quiz_limit_daily")
-  //   .eq("id", userId)
-  //   .single();
-  // // 없는 유저이거나 에러 발생 시 에러 반환
-  // if (userError || !user) throw new Error("사용자 정보를 찾을 수 없습니다.");
-  // if (user.quiz_count_today >= user.quiz_limit_daily) {
-  //   throw new Error("일일 퀴즈 생성 한도를 초과했습니다.");
-  // }
+  // 유저의 퀴즈 생성 제한 조회
+  const { data: user, error: userError } = await supabaseClient
+    .from("users")
+    .select("quiz_count_today, quiz_limit_daily")
+    .eq("id", userId)
+    .single();
+  // 없는 유저이거나 에러 발생 시 에러 반환
+  if (userError || !user) throw new Error("사용자 정보를 찾을 수 없습니다.");
+  if (user.quiz_count_today >= user.quiz_limit_daily) {
+    throw new Error("일일 퀴즈 생성 한도를 초과했습니다.");
+  }
 
   // 1. 모델 설정 (gpt-4o-mini 추천)
   const model = new ChatOpenAI({
@@ -299,36 +299,36 @@ ${COMMON_GUIDELINES}`;
       text: text.substring(0, 20000), // 토큰 제한 안전장치 : 텍스트 최대 5000자, 10page PDF 1개 최대 15000자 기준
     });
 
-    // // 퀴즈 JSON 결과 DB에 저장 (promise.all에서 병렬 비동기 처리)
-    // const saveQuizPromise = supabaseClient.from("quizzes").insert({
-    //   user_id: userId,
-    //   title: `${new Date().toISOString().split("T")[0]} 퀴즈`, // 제목 자동 생성
-    //   type: config.type,
-    //   difficulty: config.difficulty,
-    //   count: config.count,
-    //   quiz_content: result, // AI 결과 JSON 그대로 저장
-    // });
+    // 퀴즈 결과(JSON)를 DB에 저장 (promise.all에서 병렬 비동기 처리)
+    const saveQuizPromise = supabaseClient.from("quizzes").insert({
+      user_id: userId,
+      title: `${new Date().toISOString().split("T")[0]} 퀴즈`, // 제목 자동 생성
+      type: config.type,
+      difficulty: config.difficulty,
+      count: config.count,
+      quiz_content: result, // AI 결과 JSON 그대로 저장
+    });
 
-    // // 퀴즈 생성 횟수 증가 (promise.all에서 병렬 비동기 처리)
-    // const incrementCountPromise = supabaseClient
-    //   .from("users")
-    //   .update({ quiz_count_today: user.quiz_count_today + 1 })
-    //   .eq("id", userId);
+    // 퀴즈 생성 횟수 증가 (promise.all에서 병렬 비동기 처리)
+    const incrementCountPromise = supabaseClient
+      .from("users")
+      .update({ quiz_count_today: user.quiz_count_today + 1 })
+      .eq("id", userId);
 
-    // // 퀴즈 저장, 퀴즈 생성 횟수 증가 모두 성공할 때까지 대기 (늦게 실행되는거 만큼 소요됨)
-    // const [quizResult, updateResult] = await Promise.all([
-    //   saveQuizPromise,
-    //   incrementCountPromise,
-    // ]);
+    // 퀴즈 저장, 퀴즈 생성 횟수 증가 모두 성공할 때까지 대기 (늦게 실행되는거 만큼 소요됨)
+    const [quizResult, updateResult] = await Promise.all([
+      saveQuizPromise,
+      incrementCountPromise,
+    ]);
 
-    // if (quizResult.error)
-    //   throw new Error(
-    //     `퀴즈 JSON 결과 DB에 저장 실패: ${quizResult.error.message}`
-    //   );
-    // if (updateResult.error)
-    //   throw new Error(
-    //     `퀴즈 생성 횟수 제한(quiz_count_today) 업데이트 실패: ${updateResult.error.message}`
-    //   );
+    if (quizResult.error)
+      throw new Error(
+        `퀴즈 JSON 결과 DB에 저장 실패: ${quizResult.error.message}`
+      );
+    if (updateResult.error)
+      throw new Error(
+        `퀴즈 생성 횟수 제한(quiz_count_today) 업데이트 실패: ${updateResult.error.message}`
+      );
 
     return result; // 최종 결과 반환
   } catch (error) {
