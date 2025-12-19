@@ -47,7 +47,7 @@ serve(async (req) => {
   }
 
   // 4. 헤더의 토큰에서 user_id 추출하기
-  // 클라 요청(req) 헤더 중 Authorization 키의 값을 가져와서 authHeader 변수에 저장. (Bearer eyJhbGciOiJIUzI1Ni... 형태의 문자열이 여기에 들어옴)
+  // 요청(req) 헤더 중 Authorization 키의 값을 가져와서 authHeader 변수에 저장. (Bearer eyJhbGciOiJIUzI1Ni... 형태의 문자열이 여기에 들어옴)
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) {
     throw new Error(

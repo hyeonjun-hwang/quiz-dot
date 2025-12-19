@@ -1,40 +1,8 @@
 import { supabase } from "@/utils/supabase";
-
-// 개별 퀴즈 타입
-export interface QuizItem {
-  id: number; // ← UUID가 아닌 숫자!
-  question: string; // 문제 텍스트
-  options: string[]; // 선택지 배열 (객관식)
-  answer: string; // 정답 (단일 값)
-  explanation: string; // 해설
-}
-
-// quiz_content 타입
-export interface QuizContent {
-  summary: string; // 학습 자료 요약
-  quizzes: QuizItem[]; // 문제 배열
-}
-
-// quiz 타입
-export interface Quiz {
-  id: string; // UUID v4
-  user_id: string; // 작성자 ID (UUID)
-  title: string; // 퀴즈 제목
-  type: string; // 퀴즈 분류 (예: 'Node.js', 'React')
-  difficulty: "easy" | "medium" | "hard";
-  count: number; // 문제 개수
-  quiz_content: QuizContent; // ← 구조: {summary, quizzes[]}
-  is_shared: boolean; // 공개 여부
-  shared_token?: string | null; // 공유 토큰
-  created_at: string; // 생성 일시
-  updated_at: string; // 수정 일시
-}
-
-// 사용자 답변 구조 (ex. { 1: "API 서버", 2: "잘모르겠음" })
-export type UserAnswers = Record<number, string>;
+import type { QuizContent, QuizItem, UserAnswers } from "@/types/quiz";
 
 // 채점 결과 반환(response) 타입
-export interface SubmissionResult {
+export interface SubmitQuizResponse {
   submission_id: string;
   score: number; // 0~100
   correct_count: number;
@@ -50,18 +18,6 @@ export interface SubmissionResult {
   wrong_questions: QuizItem[];
 }
 
-// quiz_submissions 타입
-export interface QuizSubmission {
-  id: string; // UUID v4
-  quiz_id: string; // 퀴즈 ID (UUID)
-  user_id: string; // 사용자 ID (UUID)
-  user_answers: UserAnswers; // {1: "답", 2: "잘모르겠음"}
-  score: number; // 0~100
-  correct_count: number;
-  total_count: number;
-  created_at: string; // 제출 일시
-}
-
 /**
  * 퀴즈 채점 로직 (로컬 연산)
  * @param userAnswers 사용자 답변 {1: "답", 2: "답"}
@@ -69,7 +25,7 @@ export interface QuizSubmission {
  * @returns 채점 결과
  */
 export function scoreQuiz(userAnswers: UserAnswers, quizContent: QuizContent) {
-  const results = [];
+  const results: SubmitQuizResponse["results"] = [];
   let correctCount = 0;
 
   const quizzes = quizContent.quizzes; // 요약 빼고 퀴즈 리스트 부분만 추출
@@ -78,12 +34,14 @@ export function scoreQuiz(userAnswers: UserAnswers, quizContent: QuizContent) {
   quizzes.forEach((question: QuizItem) => {
     const userAnswer = userAnswers[question.id];
 
-    const isAnswered =
-      userAnswer && userAnswer !== "잘모르겠음" && userAnswer.trim() !== "";
+    const isAnswered = Boolean(
+      userAnswer && userAnswer !== "잘모르겠음" && userAnswer.trim() !== ""
+    );
 
-    const isCorrect =
+    const isCorrect = Boolean(
       isAnswered &&
-      userAnswer.toLowerCase().trim() === question.answer.toLowerCase().trim();
+        userAnswer.toLowerCase().trim() === question.answer.toLowerCase().trim()
+    );
 
     if (isCorrect) {
       correctCount++;
@@ -100,8 +58,9 @@ export function scoreQuiz(userAnswers: UserAnswers, quizContent: QuizContent) {
     });
   });
 
-  const score = Math.round((correctCount / quizzes.length) * 100);
+  const score = Math.round((correctCount / quizzes.length) * 100); // 점수 계산
 
+  // 틀린 문제 리스트만 따로 추출
   const wrongQuestions = quizzes.filter((q: QuizItem) => {
     const userAnswer = userAnswers[q.id];
     return (
@@ -111,6 +70,7 @@ export function scoreQuiz(userAnswers: UserAnswers, quizContent: QuizContent) {
     );
   });
 
+  // 채첨 결과 반환
   return {
     score,
     correct_count: correctCount,
@@ -121,20 +81,21 @@ export function scoreQuiz(userAnswers: UserAnswers, quizContent: QuizContent) {
 }
 
 /**
- * 퀴즈 제출 및 채점
+ * 퀴즈 제출 및 DB 저장
  * @param quizId 퀴즈 ID
  * @param userId 사용자 ID
  * @param userAnswers 사용자 답변 {1: "답", 2: "답"}
  * @param quizContent 퀴즈 내용 {summary, quizzes[]}
  * @returns 제출 결과
  */
-export async function submitQuizAndScore(
+export async function submitQuiz(
   quizId: string,
   userId: string,
   userAnswers: UserAnswers,
   quizContent: QuizContent
-): Promise<SubmissionResult> {
+): Promise<SubmitQuizResponse> {
   try {
+    // 파라미터 타입 판단 (방어코드)
     if (!quizId) throw new Error("퀴즈 ID가 필요합니다.");
     if (!userId) throw new Error("사용자 ID가 필요합니다.");
     if (!userAnswers || Object.keys(userAnswers).length === 0) {
@@ -148,8 +109,10 @@ export async function submitQuizAndScore(
       throw new Error("퀴즈 내용이 비어있습니다.");
     }
 
+    // scoreQuiz()함수 호출해서 채점 결과 scoringResult에 받기
     const scoringResult = scoreQuiz(userAnswers, quizContent);
 
+    // DB에 저장
     const { data: submission, error } = await supabase
       .from("quiz_submissions")
       .insert({
@@ -163,6 +126,7 @@ export async function submitQuizAndScore(
       .select()
       .single();
 
+    // 에러 처리
     if (error) {
       console.error("Supabase 저장 오류:", error);
 
@@ -180,6 +144,7 @@ export async function submitQuizAndScore(
       throw new Error("제출 결과를 저장할 수 없습니다.");
     }
 
+    // DB에 저장된 최종 채점 결과 반환
     return {
       submission_id: submission.id,
       score: scoringResult.score,

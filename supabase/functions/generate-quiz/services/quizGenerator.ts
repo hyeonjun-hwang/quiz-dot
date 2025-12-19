@@ -299,7 +299,7 @@ ${COMMON_GUIDELINES}`;
       text: text.substring(0, 20000), // 토큰 제한 안전장치 : 텍스트 최대 5000자, 10page PDF 1개 최대 15000자 기준
     });
 
-    // 퀴즈 JSON 결과 DB에 저장 (promise.all에서 병렬 비동기 처리)
+    // 퀴즈 결과(JSON)를 DB에 저장 (promise.all에서 병렬 비동기 처리)
     const saveQuizPromise = supabaseClient.from("quizzes").insert({
       user_id: userId,
       title: `${new Date().toISOString().split("T")[0]} 퀴즈`, // 제목 자동 생성

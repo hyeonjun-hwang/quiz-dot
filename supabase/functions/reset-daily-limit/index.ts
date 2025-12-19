@@ -19,15 +19,15 @@ serve(async (req) => {
 
   try {
     // 1. 유저 ID 추출 (JWT에서 ID만 안전하게 추출)
-    const authHeader = req.headers.get("Authorization");
+    const authHeader = req.headers.get("Authorization"); // request header의 Authorization에서 access token 가져오기
     if (!authHeader) throw new Error("인증 토큰이 없습니다.");
-
-    // Anon 클라이언트를 사용하여 유저 ID만 추출
+    // userId 추출용 supabaseClient
     const supabaseAnonClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_ANON_KEY")!,
       { global: { headers: { Authorization: authHeader } } }
     );
+    // userId 가져오기
     const {
       data: { user },
       error: authError,
@@ -35,11 +35,11 @@ serve(async (req) => {
     if (authError || !user) throw new Error("유효하지 않은 사용자입니다.");
     const userId = user.id;
 
-    // 2. 유저 정보 조회
+    // 2. uerId로 해당 유저의 quiz_count_reset_at 조회
     const { data: userData, error: fetchError } =
       await supabaseServiceRoleClient
         .from("users")
-        .select("quiz_count_reset_at") // 초기화에 필요한 reset_at만 조회
+        .select("quiz_count_reset_at")
         .eq("id", userId)
         .single();
 
