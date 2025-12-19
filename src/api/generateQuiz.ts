@@ -36,7 +36,7 @@ export async function generateQuiz(
   } = await supabase.auth.getSession();
 
   if (!session) {
-    throw new Error("session이 없어서 access token을 가져올 수 엄슴!");
+    throw new Error("session이 없어서 access token을 가져올 수 없음!");
   }
 
   // Edge Function 호출

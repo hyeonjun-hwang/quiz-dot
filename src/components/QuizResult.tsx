@@ -153,9 +153,9 @@ export function QuizResult({ result, onRetryWrong, onBackToHome }: QuizResultPro
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-start gap-3 flex-1 text-left">
                         {isCorrect ? (
-                          <CheckCircle2 className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
+                          <CheckCircle2 className="h-5 w-5 text-success mt-0.5 shrink-0" />
                         ) : (
-                          <XCircle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                          <XCircle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
                         )}
                         <div className="space-y-1 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -168,9 +168,9 @@ export function QuizResult({ result, onRetryWrong, onBackToHome }: QuizResultPro
                         </div>
                       </div>
                       {isExpanded ? (
-                        <ChevronUp className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                        <ChevronUp className="h-5 w-5 shrink-0 mt-0.5" />
                       ) : (
-                        <ChevronDown className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                        <ChevronDown className="h-5 w-5 shrink-0 mt-0.5" />
                       )}
                     </div>
                   </CardHeader>

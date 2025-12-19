@@ -1,16 +1,32 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
-import { Textarea } from "./ui/textarea";
-import { Label } from "./ui/label";
-import { Input } from "./ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Upload, Sparkles, Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { projectId, publicAnonKey } from "../utils/supabase";
+// React 및 라우팅 관련 라이브러리
+import { useState } from "react"; // 상태 관리를 위한 React Hook
+import { useNavigate } from "react-router"; // 페이지 이동을 위한 React Router Hook
 
+// UI 컴포넌트들 (shadcn/ui 라이브러리)
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"; // 탭 UI (퀴즈 만들기 / 요약하기)
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"; // 카드 레이아웃
+import { Button } from "./ui/button"; // 버튼 컴포넌트
+import { Textarea } from "./ui/textarea"; // 텍스트 입력 영역
+import { Label } from "./ui/label"; // 라벨 컴포넌트
+import { Input } from "./ui/input"; // 파일 업로드 input
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"; // 드롭다운 선택
+
+// 아이콘 및 알림 라이브러리
+import { Upload, Sparkles, Loader2 } from "lucide-react"; // 아이콘 (업로드, 생성, 로딩)
+import { toast } from "sonner"; // 토스트 알림 (성공, 에러 메시지 표시)
+
+// Supabase 설정 및 유틸리티
+import pdfToText from "react-pdftotext"; // PDF를 텍스트로 변환하는 라이브러리
+import { generateQuiz } from "../api/generateQuiz"; // 퀴즈 생성 API 호출 함수
+import { generateSummary } from "../api/generateSummary"; // 요약 생성 API 호출 함수
+
+/**
+ * QuizCreation 컴포넌트의 Props 타입 정의
+ * @param accessToken - 사용자 인증을 위한 액세스 토큰
+ * @param onQuizGenerated - 퀴즈 생성 성공 시 호출되는 콜백 함수
+ * @param remainingQuizzes - 사용자가 생성할 수 있는 남은 퀴즈 개수
+ * @param onUpgradeNeeded - 퀴즈 개수 제한에 도달했을 때 호출되는 콜백 (업그레이드 안내)
+ */
 interface QuizCreationProps {
   accessToken: string;
   onQuizGenerated: (quizId: string) => void;
@@ -18,145 +34,207 @@ interface QuizCreationProps {
   onUpgradeNeeded: () => void;
 }
 
+/**
+ * QuizCreation 컴포넌트
+ * 사용자가 텍스트 또는 PDF 파일을 입력하여 AI 퀴즈 또는 요약을 생성할 수 있는 메인 페이지
+ */
 export function QuizCreation({
   accessToken,
-  onQuizGenerated,
+  onQuizGenerated, // TODO: 추후 퀴즈 생성 성공 시 사용 예정
   remainingQuizzes,
   onUpgradeNeeded,
 }: QuizCreationProps) {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("quiz");
-  const [text, setText] = useState("");
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [quizType, setQuizType] = useState("multiple");
-  const [difficulty, setDifficulty] = useState("medium");
-  const [quizCount, setQuizCount] = useState("10");
-  const [loading, setLoading] = useState(false);
+  // ===== 상태 관리 =====
+  const navigate = useNavigate(); // 페이지 이동을 위한 navigate 함수
+  const [activeTab, setActiveTab] = useState("quiz"); // 현재 선택된 탭 ("quiz" 또는 "summary")
+  const [text, setText] = useState(""); // 사용자가 입력한 텍스트
+  const [pdfFile, setPdfFile] = useState<File | null>(null); // 업로드된 PDF 파일 (File 객체 또는 null)
+  const [quizType, setQuizType] = useState("multiple"); // 퀴즈 형태 ("multiple" = 객관식, "short" = 단답형)
+  const [difficulty, setDifficulty] = useState("medium"); // 난이도 ("easy", "medium", "hard")
+  const [quizCount, setQuizCount] = useState("10"); // 생성할 퀴즈 개수 ("5", "10", "15")
+  const [loading, setLoading] = useState(false); // 로딩 상태 (API 호출 중일 때 true)
 
+  /**
+   * PDF 파일 업로드 핸들러
+   * 사용자가 PDF 파일을 선택했을 때 호출되는 함수
+   * @param e - 파일 input의 change 이벤트
+   */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]; // 선택된 첫 번째 파일 가져오기
     if (file) {
+      // 1. 파일 타입 검증: PDF 파일만 허용
       if (file.type !== "application/pdf") {
         toast.error("PDF 파일만 업로드 가능합니다");
         return;
       }
+      // 2. 파일 크기 검증: 10MB 이하만 허용
       if (file.size > 10 * 1024 * 1024) {
         toast.error("파일 크기는 10MB 이하여야 합니다");
         return;
       }
+
+      // 3. 검증 통과 시 파일 저장 (아직 텍스트로 변환하지 않음)
       setPdfFile(file);
-      toast.success("파일이 선택되었습니다");
+      toast.success("PDF 파일이 업로드되었습니다");
     }
   };
 
+  /**
+   * 퀴즈 생성 핸들러
+   * "AI 퀴즈 생성하기" 버튼을 클릭했을 때 호출되는 비동기 함수
+   * PDF 파일이 있으면 텍스트로 변환 후 기존 텍스트와 합쳐서 퀴즈 생성 API 호출
+   */
   const handleGenerateQuiz = async () => {
+    // ===== 1. 입력 검증 =====
+    // 텍스트와 PDF 파일이 모두 없으면 에러
     if (!text && !pdfFile) {
-      toast.error("텍스트 또는 PDF 파일 중 하나를 입력해주세요");
+      toast.error("텍스트를 입력하거나 PDF 파일을 업로드해주세요");
       return;
     }
 
+    // 텍스트 길이 제한 검증 (5,000자 초과 불가)
     if (text.length > 5000) {
       toast.error("텍스트는 5,000자 이하로 입력해주세요");
       return;
     }
 
+    // 남은 퀴즈 생성 횟수 확인 (무료 사용자 제한)
     if (remainingQuizzes <= 0) {
-      onUpgradeNeeded();
+      onUpgradeNeeded(); // 업그레이드 안내 모달 표시
       return;
     }
 
-    // 로딩 페이지로 이동
-    navigate("/quiz-loading");
-
+    // ===== 2. 로딩 상태 시작 =====
     setLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("text", text);
-      formData.append("quizType", quizType);
-      formData.append("difficulty", difficulty);
-      formData.append("quizCount", quizCount);
+      // ===== 3. PDF 파일 텍스트 변환 및 합치기 =====
+      let combinedText = text; // 기본값은 사용자가 입력한 텍스트
       if (pdfFile) {
-        formData.append("pdf", pdfFile);
-      }
-
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-9e56844d/generate-quiz`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: formData,
+        toast.info("PDF를 텍스트로 변환 중...");
+        try {
+          // pdfToText 라이브러리를 사용하여 PDF → 텍스트 변환
+          const extractedText = await pdfToText(pdfFile);
+          if (extractedText.trim()) {
+            // 기존 텍스트가 있으면 "\n\n"로 구분하여 합치기
+            combinedText = text ? `${text}\n\n${extractedText}` : extractedText;
+            toast.success("PDF가 텍스트로 변환되었습니다");
+          }
+        } catch (error) {
+          // PDF 변환 실패 시 에러 처리
+          console.error("PDF 변환 오류:", error);
+          toast.error("PDF 변환 중 오류가 발생했습니다");
+          setLoading(false);
+          return;
         }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "퀴즈 생성에 실패했습니다");
       }
 
-      const data = await response.json();
+      // ===== 4. generateQuiz API 호출 =====
+      // src/api/generateQuiz.ts의 generateQuiz 함수 호출
+      // - text: PDF와 수동 입력 텍스트가 합쳐진 학습 자료
+      // - type: 퀴즈 유형 (multiple_choice = 객관식, short_answer = 단답형)
+      // - count: 생성할 퀴즈 개수 (5, 10, 15)
+      // - difficulty: 난이도 (easy, medium, hard)
+      const quizData = await generateQuiz({
+        text: combinedText,
+        type: quizType === "multiple" ? "multiple_choice" : "short_answer",
+        count: parseInt(quizCount),
+        difficulty: difficulty,
+      });
+
+      // ===== 5. 퀴즈 생성 성공 =====
       toast.success("퀴즈가 생성되었습니다!");
-      onQuizGenerated(data.quizId);
+
+      // ===== 6. 로딩 페이지로 이동 (퀴즈 데이터 전달) =====
+      // React Router의 state를 사용하여 생성된 퀴즈 데이터를 QuizLoadingPage로 전달
+      // QuizLoadingPage → QuizSolvingPage → QuizResultPage 순서로 데이터 전달됨
+      navigate("/quiz-loading", {
+        state: {
+          quizData: quizData, // AI가 생성한 퀴즈 데이터 (문제, 답, 해설 포함)
+        },
+      });
     } catch (err: unknown) {
+      // ===== 7. 에러 처리 =====
       console.error("Quiz generation error:", err);
       toast.error(err instanceof Error ? err.message : "퀴즈 생성에 실패했습니다");
     } finally {
+      // ===== 8. 로딩 상태 종료 =====
       setLoading(false);
     }
   };
 
+  /**
+   * 요약 생성 핸들러
+   * "AI 요약 생성하기" 버튼을 클릭했을 때 호출되는 비동기 함수
+   * PDF 파일이 있으면 텍스트로 변환 후 기존 텍스트와 합쳐서 요약 생성 API 호출
+   */
   const handleGenerateSummary = async () => {
+    // ===== 1. 입력 검증 =====
     if (!text && !pdfFile) {
-      toast.error("텍스트 또는 PDF 파일 중 하나를 입력해주세요");
+      toast.error("텍스트를 입력하거나 PDF 파일을 업로드해주세요");
       return;
     }
 
-    // 로딩 페이지로 이동
-    navigate("/summary-loading");
-
+    // ===== 2. 로딩 상태 시작 =====
     setLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("text", text);
+      // ===== 3. PDF 파일 텍스트 변환 및 합치기 =====
+      let combinedText = text;
       if (pdfFile) {
-        formData.append("pdf", pdfFile);
-      }
-
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-9e56844d/generate-summary`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: formData,
+        toast.info("PDF를 텍스트로 변환 중...");
+        try {
+          // pdfToText 라이브러리를 사용하여 PDF → 텍스트 변환
+          const extractedText = await pdfToText(pdfFile);
+          if (extractedText.trim()) {
+            // 기존 텍스트가 있으면 "\n\n"로 구분하여 합치기
+            combinedText = text ? `${text}\n\n${extractedText}` : extractedText;
+            toast.success("PDF가 텍스트로 변환되었습니다");
+          }
+        } catch (error) {
+          // PDF 변환 실패 시 에러 처리
+          console.error("PDF 변환 오류:", error);
+          toast.error("PDF 변환 중 오류가 발생했습니다");
+          setLoading(false);
+          return;
         }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "요약 생성에 실패했습니다");
       }
 
-      const data = await response.json();
+      // ===== 4. generateSummary API 호출 =====
+      // src/api/generateSummary.ts의 generateSummary 함수 호출
+      // - text: PDF와 수동 입력 텍스트가 합쳐진 학습 자료
+      const summaryData = await generateSummary({
+        text: combinedText,
+      });
+
+      // ===== 5. 요약 생성 성공 =====
       toast.success("요약이 생성되었습니다!");
-      // 요약 결과를 표시하는 모달 등을 띄울 수 있습니다
-      alert(data.summary);
+
+      // ===== 6. 로딩 페이지로 이동 (요약 데이터 전달) =====
+      // React Router의 state를 사용하여 생성된 요약 데이터를 SummaryLoadingPage로 전달
+      navigate("/summary-loading", {
+        state: {
+          summaryData: summaryData, // AI가 생성한 요약 데이터
+        },
+      });
     } catch (err: unknown) {
+      // ===== 7. 에러 처리 =====
       console.error("Summary generation error:", err);
       toast.error(err instanceof Error ? err.message : "요약 생성에 실패했습니다");
     } finally {
+      // ===== 8. 로딩 상태 종료 =====
       setLoading(false);
     }
   };
 
+  // ===== 유효성 검사 =====
+  // 버튼 활성화 조건: (텍스트가 있거나 PDF가 있음) AND (텍스트가 5000자 이하)
   const isValid = (text.length > 0 || pdfFile !== null) && text.length <= 5000;
 
+  // ===== JSX 렌더링 =====
   return (
     <div className="container max-w-4xl mx-auto p-4 space-y-6">
+      {/* 헤더: 제목 및 남은 횟수 표시 */}
       <div className="flex items-center justify-between">
         <div>
           <h1>학습 자료 준비</h1>
@@ -164,18 +242,22 @@ export function QuizCreation({
             텍스트를 입력하거나 PDF 파일을 업로드하세요
           </p>
         </div>
+        {/* 남은 퀴즈 생성 횟수 (무료 사용자 제한) */}
         <div className="text-sm text-muted-foreground">
           남은 횟수: <span className="text-primary">{remainingQuizzes}회</span>
         </div>
       </div>
 
+      {/* 탭 UI: 퀴즈 만들기 / 요약하기 */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="quiz">퀴즈 만들기</TabsTrigger>
           <TabsTrigger value="summary">요약하기</TabsTrigger>
         </TabsList>
 
+        {/* ===== 탭 1: 퀴즈 만들기 ===== */}
         <TabsContent value="quiz" className="space-y-6 mt-6">
+          {/* 카드 1: 학습 자료 입력 */}
           <Card>
             <CardHeader>
               <CardTitle>학습 자료 입력</CardTitle>
@@ -184,6 +266,7 @@ export function QuizCreation({
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* 텍스트 입력 영역 */}
               <div className="space-y-2">
                 <Label htmlFor="text-input">
                   텍스트 입력 ({text.length}/5,000자)
@@ -192,12 +275,13 @@ export function QuizCreation({
                   id="text-input"
                   placeholder="학습할 내용을 입력하세요..."
                   value={text}
-                  onChange={(e) => setText(e.target.value)}
+                  onChange={(e) => setText(e.target.value)} // 텍스트 변경 시 상태 업데이트
                   className="min-h-[200px] resize-none"
-                  maxLength={5000}
+                  maxLength={5000} // 최대 5000자 제한
                 />
               </div>
 
+              {/* 구분선 "또는" */}
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t" />
@@ -207,21 +291,25 @@ export function QuizCreation({
                 </div>
               </div>
 
+              {/* PDF 파일 업로드 영역 */}
               <div className="space-y-2">
                 <Label htmlFor="pdf-upload">PDF 업로드 (최대 10페이지)</Label>
                 <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
+                  {/* 실제 파일 input (숨김 처리) */}
                   <Input
                     id="pdf-upload"
                     type="file"
-                    accept=".pdf"
-                    onChange={handleFileChange}
+                    accept=".pdf" // PDF 파일만 허용
+                    onChange={handleFileChange} // 파일 선택 시 handleFileChange 호출
                     className="hidden"
                   />
+                  {/* 커스텀 업로드 UI (label을 클릭하면 input이 트리거됨) */}
                   <label
                     htmlFor="pdf-upload"
                     className="cursor-pointer flex flex-col items-center gap-2"
                   >
                     <Upload className="h-8 w-8 text-muted-foreground" />
+                    {/* PDF 파일이 업로드되면 파일명과 크기 표시 */}
                     {pdfFile ? (
                       <div className="space-y-1">
                         <p className="text-sm">{pdfFile.name}</p>
@@ -230,6 +318,7 @@ export function QuizCreation({
                         </p>
                       </div>
                     ) : (
+                      // 파일이 없으면 업로드 안내 메시지 표시
                       <div className="space-y-1">
                         <p className="text-sm">클릭하여 PDF 파일 선택</p>
                         <p className="text-xs text-muted-foreground">
@@ -243,12 +332,14 @@ export function QuizCreation({
             </CardContent>
           </Card>
 
+          {/* 카드 2: 퀴즈 옵션 설정 */}
           <Card>
             <CardHeader>
               <CardTitle>퀴즈 옵션</CardTitle>
               <CardDescription>원하는 퀴즈 형태를 선택하세요</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* 퀴즈 형태 선택 (객관식 / 단답형) */}
               <div className="space-y-3">
                 <Label htmlFor="quiz-type">퀴즈 형태</Label>
                 <Select value={quizType} onValueChange={setQuizType}>
