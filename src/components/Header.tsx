@@ -9,8 +9,8 @@ interface HeaderProps {
 
 function Header({ onMenuClick, showMenu = true }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 max-w-screen-xl items-center justify-between px-4">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
+      <div className="container mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         <Logo className="text-xl" />
         {showMenu && (
           <Button variant="ghost" size="icon" onClick={onMenuClick}>

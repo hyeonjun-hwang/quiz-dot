@@ -63,7 +63,7 @@ export function SummaryResult({ summary, onBack, onCreateQuiz }: SummaryResultPr
         <CardContent>
           <div className="bg-muted/50 rounded-lg p-6 space-y-4">
             <div className="flex items-start gap-3">
-              <FileText className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+              <FileText className="h-5 w-5 text-primary mt-1 shrink-0" />
               <div className="flex-1 whitespace-pre-wrap leading-relaxed">
                 {summary}
               </div>

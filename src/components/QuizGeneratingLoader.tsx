@@ -3,12 +3,12 @@ import { Sparkles, FileText, Zap } from "lucide-react";
 
 export function QuizGeneratingLoader() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-white p-6">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-linear-to-b from-blue-50 to-white p-6">
       {/* 로고 */}
       <div className="mb-8">
         <h1 className="text-3xl">
           <span>QUIZ</span>
-          <span className="inline-block w-2 h-2 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 ml-0.5 mb-2"></span>
+          <span className="inline-block w-2 h-2 rounded-full bg-linear-to-br from-blue-500 to-purple-500 ml-0.5 mb-2"></span>
         </h1>
       </div>
 
@@ -27,7 +27,7 @@ export function QuizGeneratingLoader() {
           }}
           className="relative z-10"
         >
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
+          <div className="w-24 h-24 rounded-full bg-linear-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
             <Sparkles className="w-12 h-12 text-white" />
           </div>
         </motion.div>
