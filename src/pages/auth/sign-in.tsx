@@ -64,7 +64,7 @@ export default function SigninPage() {
         });
       }
     } catch (err: any) {
-      // 실패 시 토스트 (Store에서 throw err를 해줘야 여기서 잡힙니다)
+      // 실패 시 토스트 (Store에서 throw error 처리)
       toast.error("인증 실패", {
         description: err.message || "정보를 다시 확인해주세요.",
       });
