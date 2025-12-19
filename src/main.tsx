@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router";
+import { BrowserRouter, Routes, Route } from "react-router"; // react-router-dom을 사용 중이라면 확인 필요
 import { RootLayout } from "./pages/RootLayout.tsx";
 import { QuizLoadingPage } from "./pages/Quiz/QuizLoadingPage.tsx";
 import { SummaryLoadingPage } from "./pages/Quiz/SummaryLoadingPage.tsx";
@@ -9,21 +9,35 @@ import { QuizSolvingPage } from "./pages/Quiz/QuizSolvingPage.tsx";
 import { QuizResultPage } from "./pages/Quiz/QuizResultPage.tsx";
 import "./index.css";
 import App from "./App.tsx";
+import Signin from "./pages/auth/sign-in.tsx";
+import Signup from "./pages/auth/sign-up.tsx";
+import { Toaster } from "sonner";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
+        {/* 공통 레이아웃(네비게이션 바 등)이 적용되는 페이지들 */}
         <Route element={<RootLayout />}>
-          {/* ROOT */}
           <Route path="/" element={<App />} />
-          <Route path="/quiz-loading" element={<QuizLoadingPage />} />
-          <Route path="/summary-loading" element={<SummaryLoadingPage />} />
-          <Route path="/summary-result" element={<SummaryResultPage />} />
-          <Route path="/quiz-solving" element={<QuizSolvingPage />} />
-          <Route path="/quiz-result" element={<QuizResultPage />} />
+
+          {/* 퀴즈 관련 경로 */}
+          <Route path="/quiz/loading" element={<QuizLoadingPage />} />
+          <Route path="/quiz/solving" element={<QuizSolvingPage />} />
+          <Route path="/quiz/result" element={<QuizResultPage />} />
+
+          {/* 요약 관련 경로 */}
+          <Route path="/summary/loading" element={<SummaryLoadingPage />} />
+          <Route path="/summary/result" element={<SummaryResultPage />} />
         </Route>
+
+        {/* 레이아웃 없이 단독으로 보여줄 페이지 (로그인/회원가입 등) */}
+        <Route path="/sign-in" element={<Signin />} />
+        <Route path="/sign-up" element={<Signup />} />
       </Routes>
+
+      {/* 전역 알림 설정 */}
+      <Toaster position="top-center" richColors closeButton />
     </BrowserRouter>
   </StrictMode>
 );

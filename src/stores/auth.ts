@@ -26,8 +26,8 @@ interface AuthState {
   // 일반 로그인/회원가입
   signUpWithEmail: (
     email: string,
-    password: string
-    // nickname: string
+    password: string,
+    nickname?: string
   ) => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
 
@@ -37,13 +37,16 @@ interface AuthState {
 
   // 로그아웃
   signOut: () => Promise<void>; // 로그아웃 및 상태 초기화
+
+  // 에러 상태 설정
+  setError: (error: string | null) => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   // --- 초기 상태 설정 ---
   user: null,
   session: null,
-  isLoading: true,
+  isLoading: false,
   error: null,
 
   // 1. 앱 초기화: 세션 확인 및 DB 유저 정보 결합
@@ -89,13 +92,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   // 3-1. 일반 회원가입
-  signUpWithEmail: async (email, password) => {
+  signUpWithEmail: async (email, password, nickname) => {
     set({ isLoading: true, error: null });
     try {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        //options: { data: { nickname } }, //닉네임 저장
+        options: { data: { nickname } }, //닉네임 저장
       });
       if (error) throw error;
       alert("가입 확인 이메일이 발송되었습니다!");
@@ -146,6 +149,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ error: err.message });
     }
   },
+  // 에러 상태 설정
+  setError: (error) => set({ error }),
 
   // 5. 로그아웃 (상태 초기화 통합)
   signOut: async () => {
