@@ -1,9 +1,9 @@
 
-import { QuizCreationPage } from './Quiz/QuizCreationPage'
+import SigninPage from './auth/sign-in'
 
 function Home() {
   return (
-    <QuizCreationPage />
+    <SigninPage/>
   )
 }
 

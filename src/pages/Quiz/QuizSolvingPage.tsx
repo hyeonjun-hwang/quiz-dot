@@ -34,7 +34,7 @@ export function QuizSolvingPage() {
 
   const handleSubmit = (userAnswers: Record<string, { answer: string; dontKnow: boolean }>) => {
     // 사용자 답안과 퀴즈 데이터를 QuizResultPage로 전달
-    navigate("/quiz-result", {
+    navigate("/quiz/result", {
       state: {
         questions: questions,
         userAnswers: userAnswers,
