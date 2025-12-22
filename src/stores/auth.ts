@@ -129,7 +129,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: window.location.origin + "/auth/callback" },
+        options: {
+          redirectTo:
+            window.location.origin + "http://localhost:5173/auth/callback",
+        },
       });
       if (error) throw error;
     } catch (err: any) {
@@ -142,7 +145,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "kakao",
-        options: { redirectTo: window.location.origin + "/auth/callback" },
+        options: {
+          redirectTo:
+            window.location.origin + "http://localhost:5173/auth/callback",
+        },
       });
       if (error) throw error;
     } catch (err: any) {
