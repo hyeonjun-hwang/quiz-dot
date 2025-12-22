@@ -16,3 +16,13 @@ export { Input } from "./input";
 export { Label } from "./label";
 export { Separator } from "./separator";
 export { Toaster } from "./sonner";
+export {
+  useFormField,
+  Form,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormDescription,
+  FormMessage,
+  FormField,
+} from "./form";

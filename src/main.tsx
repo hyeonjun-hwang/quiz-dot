@@ -10,8 +10,8 @@ import { QuizResultPage } from "./pages/Quiz/QuizResultPage.tsx";
 import "./index.css";
 import App from "./App.tsx";
 import Signin from "./pages/auth/sign-in.tsx";
-import Signup from "./pages/auth/sign-up.tsx";
 import { Toaster } from "sonner";
+import SignCallback from "./pages/auth/sign-callback.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -35,7 +35,8 @@ createRoot(document.getElementById("root")!).render(
 
         {/* 레이아웃 없이 단독으로 보여줄 페이지 (로그인/회원가입 등) */}
         <Route path="/sign-in" element={<Signin />} />
-        <Route path="/sign-up" element={<Signup />} />
+        {/* 콜백 페이지 */}
+        <Route path="/auth/callback" element={<SignCallback />} />
       </Routes>
 
       {/* 전역 알림 설정 */}
