@@ -53,8 +53,8 @@ export default function SigninPage() {
           description: "반가습니다! 학습을 시작해볼까요?",
         });
 
-        // 메인 페이지로 이동
-        navigate("/");
+        // QuizCreationPage로 바로 이동
+        navigate("/quiz/create");
       } else {
         await signUpWithEmail(email, password, name.trim() || undefined);
 

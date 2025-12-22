@@ -2,8 +2,8 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router"; // react-router-dom을 사용 중이라면 확인 필요
 import { RootLayout } from "./pages/RootLayout.tsx";
+import { QuizCreationPage } from "./pages/Quiz/QuizCreationPage.tsx";
 import { QuizLoadingPage } from "./pages/Quiz/QuizLoadingPage.tsx";
-import { SummaryLoadingPage } from "./pages/Quiz/SummaryLoadingPage.tsx";
 import { SummaryResultPage } from "./pages/Quiz/SummaryResultPage.tsx";
 import { QuizSolvingPage } from "./pages/Quiz/QuizSolvingPage.tsx";
 import { QuizResultPage } from "./pages/Quiz/QuizResultPage.tsx";
@@ -21,13 +21,15 @@ createRoot(document.getElementById("root")!).render(
         <Route element={<RootLayout />}>
           <Route path="/" element={<App />} />
 
+          {/* 퀴즈 생성 페이지 */}
+          <Route path="/quiz/create" element={<QuizCreationPage />} />
+
           {/* 퀴즈 관련 경로 */}
           <Route path="/quiz/loading" element={<QuizLoadingPage />} />
           <Route path="/quiz/solving" element={<QuizSolvingPage />} />
           <Route path="/quiz/result" element={<QuizResultPage />} />
 
           {/* 요약 관련 경로 */}
-          <Route path="/summary/loading" element={<SummaryLoadingPage />} />
           <Route path="/summary/result" element={<SummaryResultPage />} />
         </Route>
 
