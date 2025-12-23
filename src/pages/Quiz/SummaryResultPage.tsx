@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
-import { Header } from "../../components/Header";
+import { Header } from "../../components/common/Header";
 import { SummaryResult } from "../../components/SummaryResult";
-import { SideMenu } from "../../components/SideMenu";
+import { SideMenu } from "../../components/common/SideMenu";
 
 export function SummaryResultPage() {
   const [sideMenuOpen, setSideMenuOpen] = useState(false);

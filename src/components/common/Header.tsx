@@ -1,6 +1,6 @@
 import { Menu } from "lucide-react";
 import { Logo } from "./Logo";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 
 interface HeaderProps {
   onMenuClick: () => void;

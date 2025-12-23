@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Header } from "@/components/Header";
+import { Header } from "@/components/common/Header";
 import { QuizCreation } from "@/components/QuizCreation";
-import { SideMenu } from "@/components/SideMenu";
+import { SideMenu } from "@/components/common/SideMenu";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "sonner";
 
@@ -11,7 +11,7 @@ export function QuizCreationPage() {
   const navigate = useNavigate();
 
   // Auth store에서 사용자 정보 가져오기
-  const { user, session, initialize, signOut, refreshUserProfile } = useAuthStore();
+  const { user, session, initialize, signOut } = useAuthStore();
 
   // 컴포넌트 마운트 시 세션 확인
   useEffect(() => {
@@ -31,11 +31,6 @@ export function QuizCreationPage() {
     await signOut();
     toast.success("로그아웃되었습니다");
     navigate("/sign-in");
-  };
-
-  // 퀴즈 생성 완료 후 호출
-  const handleQuizGenerated = async () => {
-    await refreshUserProfile(); // 최신 퀴즈 생성 횟수 갱신
   };
 
   // 업그레이드 필요 시 호출
@@ -60,7 +55,6 @@ export function QuizCreationPage() {
       <Header onMenuClick={() => setSideMenuOpen(true)} />
       <QuizCreation
         accessToken={session?.access_token || ""}
-        onQuizGenerated={handleQuizGenerated}
         remainingQuizzes={remainingQuizzes}
         onUpgradeNeeded={handleUpgradeNeeded}
       />

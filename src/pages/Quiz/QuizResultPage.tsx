@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
-import { Header } from "../../components/Header";
+import { Header } from "../../components/common/Header";
 import { QuizResult, type QuizResultData } from "../../components/QuizResult";
-import { SideMenu } from "../../components/SideMenu";
+import { SideMenu } from "../../components/common/SideMenu";
 import type { Question } from "../../components/QuizSolving";
 
 export function QuizResultPage() {
