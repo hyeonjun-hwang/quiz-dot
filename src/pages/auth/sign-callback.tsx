@@ -14,9 +14,9 @@ export default function AuthCallback() {
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
         toast.success("로그인 성공!", {
-          description: "메인 페이지로 이동합니다.",
+          description: "퀴즈 생성 페이지로 이동합니다.",
         });
-        navigate("/"); // 세션 확인 후 메인으로 이동
+        navigate("/quiz/create"); // 세션 확인 후 퀴즈 생성 페이지로 이동
       }
 
       // 만약 에러가 발생하거나 로그아웃 이벤트가 발생하면 로그인 페이지로 콜백

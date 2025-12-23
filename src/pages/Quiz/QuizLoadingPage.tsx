@@ -15,7 +15,8 @@ export function QuizLoadingPage() {
         // 요약 체크박스가 선택된 경우 -> 요약 결과 페이지로 이동
         navigate("/summary/result", {
           state: {
-            quizData: quizData,
+            summary: quizData?.summary, // AI가 생성한 요약 텍스트
+            quizData: quizData, // 퀴즈 데이터도 함께 전달 (퀴즈 풀기 버튼용)
           },
         });
       } else {

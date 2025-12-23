@@ -214,7 +214,7 @@ export function QuizCreation({
               placeholder="학습할 내용을 입력하세요..."
               value={text}
               onChange={(e) => setText(e.target.value)}
-              className="min-h-[200px] resize-none"
+              className="min-h-50 resize-none"
               maxLength={5000}
             />
           </div>

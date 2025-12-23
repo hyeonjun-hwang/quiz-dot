@@ -1,15 +1,17 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
-import { FileText, Copy, Download, Sparkles, PlayCircle } from "lucide-react";
+import { FileText, Copy, Download, PlayCircle, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
+import type { QuizContent } from "@/types/quiz";
 
 interface SummaryResultProps {
   summary: string;
   onBack: () => void;
+  quizData?: QuizContent;
 }
 
-export function SummaryResult({ summary, onBack }: SummaryResultProps) {
+export function SummaryResult({ summary, onBack, quizData }: SummaryResultProps) {
   const navigate = useNavigate();
 
   const handleCopy = () => {
@@ -29,7 +31,18 @@ export function SummaryResult({ summary, onBack }: SummaryResultProps) {
   };
 
   const handleStartQuiz = () => {
-    navigate("/quiz/solving");
+    if (quizData) {
+      // 퀴즈 데이터가 있으면 퀴즈 풀이 페이지로 이동
+      navigate("/quiz/solving", {
+        state: {
+          quizData: quizData,
+        },
+      });
+    } else {
+      // 퀴즈 데이터가 없으면 퀴즈 생성 페이지로 이동
+      toast.error("퀴즈 데이터가 없습니다. 퀴즈를 먼저 생성해주세요.");
+      navigate("/quiz/create");
+    }
   };
 
   return (

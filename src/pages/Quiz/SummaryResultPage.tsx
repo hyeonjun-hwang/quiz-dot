@@ -1,30 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router";
 import { Header } from "../../components/Header";
 import { SummaryResult } from "../../components/SummaryResult";
 import { SideMenu } from "../../components/SideMenu";
 
-const sampleSummary = `이 자료는 인공지능과 머신러닝의 기초 개념을 다룹니다.
-
-주요 내용:
-1. 인공지능(AI)의 정의와 역사
-2. 머신러닝의 기본 원리와 알고리즘
-3. 딥러닝과 신경망의 구조
-4. 실제 응용 사례 및 미래 전망
-
-머신러닝은 데이터로부터 패턴을 학습하여 예측하는 기술이며,
-지도 학습, 비지도 학습, 강화 학습의 세 가지 주요 카테고리로 나뉩니다.
-딥러닝은 인공신경망을 활용한 머신러닝의 한 분야로,
-이미지 인식, 자연어 처리 등 다양한 분야에서 혁신적인 성과를 보이고 있습니다.`;
-
 export function SummaryResultPage() {
   const [sideMenuOpen, setSideMenuOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // QuizLoadingPage에서 전달받은 요약 데이터
+  const summary = location.state?.summary || "";
+  const quizData = location.state?.quizData;
+
+  // 요약 데이터가 없으면 홈으로 리다이렉트
+  useEffect(() => {
+    if (!summary) {
+      navigate("/");
+    }
+  }, [summary, navigate]);
 
   return (
     <div className="min-h-screen bg-background">
       <Header onMenuClick={() => setSideMenuOpen(true)} />
       <SummaryResult
-        summary={sampleSummary}
-        onBack={() => {}}
+        summary={summary}
+        onBack={() => navigate("/quiz/create")}
+        quizData={quizData}
       />
       
       <SideMenu
