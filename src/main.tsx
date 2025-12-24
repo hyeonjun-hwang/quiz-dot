@@ -12,7 +12,8 @@ import App from "./App.tsx";
 import Signin from "./pages/auth/sign-in.tsx";
 import { Toaster } from "sonner";
 import SignCallback from "./pages/auth/sign-callback.tsx";
-
+import Subscription from "./pages/sub/subscription.tsx";
+import SubscriptionCancel from "./pages/sub/subscription-cancel.tsx";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
@@ -33,10 +34,18 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/summary/result" element={<SummaryResultPage />} />
         </Route>
 
-        {/* 레이아웃 없이 단독으로 보여줄 페이지 (로그인/회원가입 등) */}
+        {/* 레이아웃 없이 단독으로 보여줄 페이지 (로그인/구독 등) */}
         <Route path="/sign-in" element={<Signin />} />
         {/* 콜백 페이지 */}
         <Route path="/auth/callback" element={<SignCallback />} />
+
+        {/* 구독 페이지 */}
+        <Route path="/sub/subscription" element={<Subscription />} />
+        {/* 구독 취소 페이지 */}
+        <Route
+          path="/sub/subscriptioncancel"
+          element={<SubscriptionCancel />}
+        />
       </Routes>
 
       {/* 전역 알림 설정 */}
