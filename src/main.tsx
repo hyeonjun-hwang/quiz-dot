@@ -42,7 +42,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/sign-in" element={<Signin />} />
         {/* 콜백 페이지 */}
         <Route path="/auth/callback" element={<SignCallback />} />
-        <Route path="/sign-up" element={<Signup />} />
+        {/* <Route path="/sign-up" element={<Signup />} /> */}
 
         {/* 퀴즈 공유 페이지 */}
         <Route path="/shared/:shared_token" element={<SharedQuizPage />} />

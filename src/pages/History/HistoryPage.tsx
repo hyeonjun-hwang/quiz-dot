@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Header } from "@/components/Header";
-import { SideMenu } from "@/components/SideMenu";
+import { Header } from "@/components/common/Header";
+import { SideMenu } from "@/components/common/SideMenu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,9 +41,13 @@ export function HistoryPage() {
 
   // sharingQuiz 상태가 변경될 때마다 history 배열을 업데이트하여
   // UI가 공유 상태(is_shared, shared_token) 변경을 즉시 반영하도록 함
-  const handleQuizSharingUpdate = (quizId: string, isShared: boolean, sharedToken: string | null) => {
-    setHistory(prevHistory => 
-      prevHistory.map(item => {
+  const handleQuizSharingUpdate = (
+    quizId: string,
+    isShared: boolean,
+    sharedToken: string | null
+  ) => {
+    setHistory((prevHistory) =>
+      prevHistory.map((item) => {
         if (item.quiz_id === quizId && item.quizzes) {
           return {
             ...item,
@@ -51,7 +55,7 @@ export function HistoryPage() {
               ...item.quizzes,
               is_shared: isShared,
               shared_token: sharedToken,
-            }
+            },
           };
         }
         return item;
