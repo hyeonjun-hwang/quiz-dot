@@ -62,11 +62,6 @@ export function QuizSolving({ questions, onSubmit }: QuizSolvingProps) {
     onSubmit(answers);
   };
 
-  const allAnswered = questions.every((q) => {
-    const ans = answers[q.id];
-    return ans && (ans.answer || ans.dontKnow);
-  });
-
   return (
     <div className="container max-w-3xl mx-auto p-4 space-y-6">
       <div className="space-y-2">

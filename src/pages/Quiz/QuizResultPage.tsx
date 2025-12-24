@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
-import { Header } from "../../components/Header";
+import { Header } from "../../components/common/Header";
 import { QuizResult, type QuizResultData } from "../../components/QuizResult";
-import { SideMenu } from "../../components/SideMenu";
+import { SideMenu } from "../../components/common/SideMenu";
 import type { Question } from "../../components/QuizSolving";
 
 export function QuizResultPage() {
@@ -66,8 +66,8 @@ export function QuizResultPage() {
   }, [location.state, navigate]);
 
   const handleBackToHome = () => {
-    // 홈(퀴즈 생성 페이지)로 이동
-    navigate("/");
+    // 퀴즈 생성 페이지로 이동
+    navigate("/quiz/create");
   };
 
   // 퀴즈 결과가 로드되지 않았으면 로딩 표시

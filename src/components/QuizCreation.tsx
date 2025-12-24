@@ -12,23 +12,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Checkbox } from "./ui/checkbox"; // 체크박스
 
 // 아이콘 및 알림 라이브러리
-import { Upload, Sparkles, Loader2 } from "lucide-react"; // 아이콘 (업로드, 생성, 로딩)
+import { Upload, Sparkles } from "lucide-react"; // 아이콘 (업로드, 생성)
 import { toast } from "sonner"; // 토스트 알림 (성공, 에러 메시지 표시)
 
 // Supabase 설정 및 유틸리티
 import pdfToText from "react-pdftotext"; // PDF를 텍스트로 변환하는 라이브러리
-import { generateQuiz } from "../api/generateQuiz"; // 퀴즈 생성 API 호출 함수
 
 /**
  * QuizCreation 컴포넌트의 Props 타입 정의
  * @param accessToken - 사용자 인증을 위한 액세스 토큰
- * @param onQuizGenerated - 퀴즈 생성 성공 시 호출되는 콜백 함수
  * @param remainingQuizzes - 사용자가 생성할 수 있는 남은 퀴즈 개수
  * @param onUpgradeNeeded - 퀴즈 개수 제한에 도달했을 때 호출되는 콜백 (업그레이드 안내)
  */
 interface QuizCreationProps {
   accessToken: string;
-  onQuizGenerated: (quizId: string) => void;
   remainingQuizzes: number;
   onUpgradeNeeded: () => void;
 }
@@ -39,7 +36,6 @@ interface QuizCreationProps {
  */
 export function QuizCreation({
   accessToken, // NOTE: 현재 미사용 - API 함수가 내부에서 supabase.auth.getSession()으로 직접 토큰을 가져옴. 추후 Props 인터페이스에서 제거 예정
-  onQuizGenerated, // TODO: 추후 퀴즈 생성 성공 시 사용 예정
   remainingQuizzes,
   onUpgradeNeeded,
 }: QuizCreationProps) {
@@ -53,7 +49,6 @@ export function QuizCreation({
   const [difficulty, setDifficulty] = useState("medium"); // 난이도 ("easy", "medium", "hard")
   const [quizCount, setQuizCount] = useState("10"); // 생성할 퀴즈 개수 ("5", "10", "15")
   const [generateSummary, setGenerateSummary] = useState(false); // 요약 생성 여부 (체크박스)
-  const [loading, setLoading] = useState(false); // 로딩 상태 (API 호출 중일 때 true)
 
   /**
    * PDF 파일 업로드 핸들러
@@ -91,8 +86,8 @@ export function QuizCreation({
 
   /**
    * 퀴즈 생성 핸들러
-   * "AI 퀴즈 생성하기" 버튼을 클릭했을 때 호출되는 비동기 함수
-   * PDF 파일이 있으면 텍스트로 변환 후 기존 텍스트와 합쳐서 퀴즈 생성 API 호출
+   * "AI 퀴즈 생성하기" 버튼을 클릭했을 때 호출되는 함수
+   * PDF 파일이 있으면 텍스트로 변환 후 QuizLoadingPage로 이동
    */
   const handleGenerateQuiz = async () => {
     // ===== 1. 입력 검증 =====
@@ -114,11 +109,8 @@ export function QuizCreation({
       return;
     }
 
-    // ===== 2. 로딩 상태 시작 =====
-    setLoading(true);
-
     try {
-      // ===== 3. PDF 파일 텍스트 변환 및 합치기 =====
+      // ===== 2. PDF 파일 텍스트 변환 =====
       let combinedText = text; // 기본값은 사용자가 입력한 텍스트
       if (pdfFile) {
         toast.info("PDF를 텍스트로 변환 중...");
@@ -134,43 +126,27 @@ export function QuizCreation({
           // PDF 변환 실패 시 에러 처리
           console.error("PDF 변환 오류:", error);
           toast.error("PDF 변환 중 오류가 발생했습니다");
-          setLoading(false);
           return;
         }
       }
 
-      // ===== 4. generateQuiz API 호출 =====
-      // src/api/generateQuiz.ts의 generateQuiz 함수 호출
-      // - text: PDF와 수동 입력 텍스트가 합쳐진 학습 자료
-      // - type: 퀴즈 유형 (multiple_choice = 객관식, short_answer = 단답형)
-      // - count: 생성할 퀴즈 개수 (5, 10, 15)
-      // - difficulty: 난이도 (easy, medium, hard)
-      const quizData = await generateQuiz({
-        text: combinedText,
-        type: quizType === "multiple" ? "multiple_choice" : "short_answer",
-        count: parseInt(quizCount),
-        difficulty: difficulty,
-      });
-
-      // ===== 5. 퀴즈 생성 성공 =====
-      toast.success("퀴즈가 생성되었습니다!");
-
-      // ===== 6. 로딩 페이지로 이동 (퀴즈 데이터 전달) =====
-      // React Router의 state를 사용하여 생성된 퀴즈 데이터를 QuizLoadingPage로 전달
-      // QuizLoadingPage → QuizSolvingPage → QuizResultPage 순서로 데이터 전달됨
+      // ===== 3. 로딩 페이지로 즉시 이동 (API 호출 전) =====
+      // QuizLoadingPage에서 API를 호출하도록 필요한 정보만 전달
       navigate("/quiz/loading", {
         state: {
-          quizData: quizData, // AI가 생성한 퀴즈 데이터 (문제, 답, 해설 포함)
+          quizRequest: {
+            text: combinedText,
+            type: quizType === "multiple" ? "multiple_choice" : "short_answer",
+            count: parseInt(quizCount),
+            difficulty: difficulty,
+          },
           generateSummary: generateSummary, // 요약 생성 여부 플래그
         },
       });
     } catch (err: unknown) {
-      // ===== 7. 에러 처리 =====
-      console.error("Quiz generation error:", err);
-      toast.error(err instanceof Error ? err.message : "퀴즈 생성에 실패했습니다");
-    } finally {
-      // ===== 8. 로딩 상태 종료 =====
-      setLoading(false);
+      // ===== 4. 에러 처리 =====
+      console.error("Quiz generation preparation error:", err);
+      toast.error(err instanceof Error ? err.message : "퀴즈 생성 준비에 실패했습니다");
     }
   };
 
@@ -214,7 +190,7 @@ export function QuizCreation({
               placeholder="학습할 내용을 입력하세요..."
               value={text}
               onChange={(e) => setText(e.target.value)}
-              className="min-h-[200px] resize-none"
+              className="min-h-50 resize-none"
               maxLength={5000}
             />
           </div>
@@ -335,21 +311,12 @@ export function QuizCreation({
       {/* 생성 버튼 */}
       <Button
         onClick={handleGenerate}
-        disabled={!isValid || loading}
+        disabled={!isValid}
         className="w-full"
         size="lg"
       >
-        {loading ? (
-          <>
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            AI 퀴즈 생성 중...
-          </>
-        ) : (
-          <>
-            <Sparkles className="mr-2 h-5 w-5" />
-            AI 퀴즈 생성하기
-          </>
-        )}
+        <Sparkles className="mr-2 h-5 w-5" />
+        AI 퀴즈 생성하기
       </Button>
     </div>
   );

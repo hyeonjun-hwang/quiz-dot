@@ -1,8 +1,8 @@
-import { FileText, CreditCard, MessageSquare, LogOut, Clock } from "lucide-react";
-import { Button } from "./ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "./ui/sheet";
-import { Separator } from "./ui/separator";
-import { Badge } from "./ui/badge";
+import { CreditCard, MessageSquare, LogOut, Clock } from "lucide-react";
+import { Button } from "../ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
+import { Separator } from "../ui/separator";
+import { Badge } from "../ui/badge";
 
 interface SideMenuProps {
   open: boolean;
@@ -31,13 +31,13 @@ export function SideMenu({
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-[300px] sm:w-[400px] rounded-l-2xl">
+      <SheetContent side="right" className="w-75 sm:w-100 rounded-l-2xl">
         <SheetHeader className="px-2">
           <SheetTitle>마이페이지</SheetTitle>
         </SheetHeader>
 
         <div className="flex flex-col gap-6 mt-6 px-2">
-          <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border border-blue-100 dark:border-blue-900 rounded-xl p-4 space-y-1">
+          <div className="bg-linear-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border border-blue-100 dark:border-blue-900 rounded-xl p-4 space-y-1">
             <p className="text-xs text-muted-foreground">사용자</p>
             <p className="text-lg">{userName || "사용자"}</p>
           </div>

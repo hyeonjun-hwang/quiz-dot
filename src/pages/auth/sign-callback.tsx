@@ -18,7 +18,7 @@ export default function AuthCallback() {
         await initialize(); // 이동하기 전에 DB 프로필 정보를 동기화
 
         toast.success("로그인 성공!", {
-          description: "메인 페이지로 이동합니다.",
+          description: "퀴즈 생성 페이지로 이동합니다.",
         });
         navigate("/quiz/create", { replace: true }); // 세션 확인 후 퀴즈 만들기 페이지로 이동
       }

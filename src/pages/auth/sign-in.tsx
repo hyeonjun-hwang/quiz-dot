@@ -101,7 +101,7 @@ export default function SigninPage() {
       if (isLogin) {
         await signInWithEmail(values.email, values.password);
         toast.success("로그인 성공!", { description: "반갑습니다!" });
-        navigate("/");
+        navigate("/quiz/create");
       } else {
         await signUpWithEmail(
           values.email,
