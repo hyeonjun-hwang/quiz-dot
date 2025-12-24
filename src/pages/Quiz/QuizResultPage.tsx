@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
-import { Header } from "../../components/common/Header";
+import { QuizLayout } from "@/components/layout/QuizLayout";
 import { QuizResult, type QuizResultData } from "../../components/QuizResult";
-import { SideMenu } from "../../components/common/SideMenu";
 import type { Question } from "../../components/QuizSolving";
 
 export function QuizResultPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [sideMenuOpen, setSideMenuOpen] = useState(false);
   const [quizResult, setQuizResult] = useState<QuizResultData | null>(null);
 
   useEffect(() => {
@@ -70,6 +68,44 @@ export function QuizResultPage() {
     navigate("/quiz/create");
   };
 
+  const handleRetryWrong = () => {
+    // 오답 문제만 필터링
+    const { questions, quizData } = location.state || {};
+
+    if (!questions || !quizResult) {
+      return;
+    }
+
+    // isCorrect가 false인 문제들만 추출
+    const wrongQuestionIds = quizResult.questions
+      .filter((q) => !q.isCorrect)
+      .map((q) => q.id);
+
+    const wrongQuestions = questions.filter((q: Question) =>
+      wrongQuestionIds.includes(q.id)
+    );
+
+    // QuizSolvingPage가 기대하는 형식으로 변환 (Question -> API quiz 형식)
+    const wrongQuizzesInApiFormat = wrongQuestions.map((q: Question) => ({
+      id: q.id.replace('q-', ''), // "q-1" -> "1"
+      question: q.question,
+      type: q.type,
+      options: q.options || [],
+      answer: q.answer,
+      explanation: (q as any).explanation || "해설이 제공되지 않았습니다.",
+    }));
+
+    // 오답 문제들로 다시 퀴즈 풀기 페이지로 이동
+    navigate("/quiz/solving", {
+      state: {
+        quizData: {
+          ...quizData,
+          quizzes: wrongQuizzesInApiFormat, // quizzes 속성으로 전달
+        },
+      },
+    });
+  };
+
   // 퀴즈 결과가 로드되지 않았으면 로딩 표시
   if (!quizResult) {
     return (
@@ -80,25 +116,12 @@ export function QuizResultPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header onMenuClick={() => setSideMenuOpen(true)} />
+    <QuizLayout>
       <QuizResult
         result={quizResult}
-        onRetryWrong={() => {}}
+        onRetryWrong={handleRetryWrong}
         onBackToHome={handleBackToHome}
       />
-
-      <SideMenu
-        open={sideMenuOpen}
-        onClose={() => setSideMenuOpen(false)}
-        onLogout={() => {}}
-        userName="디자인 데모"
-        subscription={{
-          tier: "FREE",
-          remainingQuizzes: 5,
-        }}
-        onNavigate={() => {}}
-      />
-    </div>
+    </QuizLayout>
   );
 }

@@ -62,6 +62,12 @@ export function QuizSolving({ questions, onSubmit }: QuizSolvingProps) {
     onSubmit(answers);
   };
 
+  // 모든 문제에 답변했는지 확인
+  const allAnswered = questions.every((q) => {
+    const ans = answers[q.id];
+    return ans && (ans.answer || ans.dontKnow);
+  });
+
   return (
     <div className="container max-w-3xl mx-auto p-4 space-y-6">
       <div className="space-y-2">
@@ -83,9 +89,8 @@ export function QuizSolving({ questions, onSubmit }: QuizSolvingProps) {
         <CardContent className="space-y-6">
           {currentQuestion.type === "multiple" && currentQuestion.options ? (
             <RadioGroup
-              value={currentAnswer.dontKnow ? "" : currentAnswer.answer}
+              value={currentAnswer.answer}
               onValueChange={handleAnswerChange}
-              disabled={currentAnswer.dontKnow}
             >
               {currentQuestion.options.map((option, idx) => (
                 <div key={idx} className="flex items-center space-x-2">
@@ -103,9 +108,8 @@ export function QuizSolving({ questions, onSubmit }: QuizSolvingProps) {
                 id="short-answer"
                 type="text"
                 placeholder="답을 입력하세요"
-                value={currentAnswer.dontKnow ? "" : currentAnswer.answer}
+                value={currentAnswer.answer}
                 onChange={(e) => handleAnswerChange(e.target.value)}
-                disabled={currentAnswer.dontKnow}
               />
             </div>
           )}
@@ -139,7 +143,7 @@ export function QuizSolving({ questions, onSubmit }: QuizSolvingProps) {
             <ChevronRight className="h-4 w-4 ml-2" />
           </Button>
         ) : (
-          <Button onClick={handleSubmit}>
+          <Button onClick={handleSubmit} disabled={!allAnswered}>
             제출하기
           </Button>
         )}

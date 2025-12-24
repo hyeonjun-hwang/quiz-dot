@@ -292,7 +292,7 @@ export function QuizCreation({
           </div>
 
           {/* 요약 생성 체크박스 */}
-          <div className="flex items-center space-x-2 pt-2 border-t">
+          <div className="flex items-center space-x-2 pt-4 border-t">
             <Checkbox
               id="generate-summary"
               checked={generateSummary}

@@ -1,11 +1,9 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
-import { Header } from "../../components/common/Header";
+import { QuizLayout } from "@/components/layout/QuizLayout";
 import { SummaryResult } from "../../components/SummaryResult";
-import { SideMenu } from "../../components/common/SideMenu";
 
 export function SummaryResultPage() {
-  const [sideMenuOpen, setSideMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -21,25 +19,12 @@ export function SummaryResultPage() {
   }, [summary, navigate]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header onMenuClick={() => setSideMenuOpen(true)} />
+    <QuizLayout>
       <SummaryResult
         summary={summary}
         onBack={() => navigate("/quiz/create")}
         quizData={quizData}
       />
-      
-      <SideMenu
-        open={sideMenuOpen}
-        onClose={() => setSideMenuOpen(false)}
-        onLogout={() => {}}
-        userName="디자인 데모"
-        subscription={{
-          tier: "FREE",
-          remainingQuizzes: 5,
-        }}
-        onNavigate={() => {}}
-      />
-    </div>
+    </QuizLayout>
   );
 }
