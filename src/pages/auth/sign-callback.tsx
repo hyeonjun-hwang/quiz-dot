@@ -3,20 +3,24 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/utils/supabase";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuthStore } from "@/stores/auth";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
+  const { initialize } = useAuthStore();
 
   useEffect(() => {
     // Supabase가 URL에 담긴 인증 토큰을 처리하고 세션을 설정할 때까지 대기
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_IN" && session) {
+        await initialize(); // 이동하기 전에 DB 프로필 정보를 동기화
+
         toast.success("로그인 성공!", {
           description: "퀴즈 생성 페이지로 이동합니다.",
         });
-        navigate("/quiz/create"); // 세션 확인 후 퀴즈 생성 페이지로 이동
+        navigate("/quiz/create", { replace: true }); // 세션 확인 후 퀴즈 만들기 페이지로 이동
       }
 
       // 만약 에러가 발생하거나 로그아웃 이벤트가 발생하면 로그인 페이지로 콜백
@@ -30,7 +34,7 @@ export default function AuthCallback() {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, initialize]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background">
