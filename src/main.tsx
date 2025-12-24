@@ -12,6 +12,8 @@ import App from "./App.tsx";
 import Signin from "./pages/auth/sign-in.tsx";
 import Signup from "./pages/auth/sign-up.tsx";
 import { Toaster } from "sonner";
+import { HistoryPage } from "./pages/History/HistoryPage.tsx";
+import { SharedQuizPage } from "./pages/Quiz/SharedQuizPage.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -29,11 +31,17 @@ createRoot(document.getElementById("root")!).render(
           {/* 요약 관련 경로 */}
           <Route path="/summary/loading" element={<SummaryLoadingPage />} />
           <Route path="/summary/result" element={<SummaryResultPage />} />
+
+          {/* 학습 기록 */}
+          <Route path="/history" element={<HistoryPage />} />
         </Route>
 
         {/* 레이아웃 없이 단독으로 보여줄 페이지 (로그인/회원가입 등) */}
         <Route path="/sign-in" element={<Signin />} />
         <Route path="/sign-up" element={<Signup />} />
+
+        {/* 퀴즈 공유 페이지 */}
+        <Route path="/shared/:shared_token" element={<SharedQuizPage />} />
       </Routes>
 
       {/* 전역 알림 설정 */}
