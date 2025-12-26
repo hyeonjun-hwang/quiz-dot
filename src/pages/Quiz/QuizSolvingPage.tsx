@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
-import { Header } from "../../components/common/Header";
+import { QuizLayout } from "@/components/layout/QuizLayout";
 import { QuizSolving, type Question } from "../../components/QuizSolving";
-import { SideMenu } from "../../components/common/SideMenu";
 import { submitQuiz } from "../../api/submitQuiz";
 import { useAuthStore } from "../../stores/auth";
 import { toast } from "sonner";
@@ -13,7 +12,6 @@ export function QuizSolvingPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuthStore();
-  const [sideMenuOpen, setSideMenuOpen] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
 
   useEffect(() => {
@@ -123,24 +121,11 @@ export function QuizSolvingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header onMenuClick={() => setSideMenuOpen(true)} />
+    <QuizLayout>
       <QuizSolving
         questions={questions}
         onSubmit={handleSubmit}
       />
-      
-      <SideMenu
-        open={sideMenuOpen}
-        onClose={() => setSideMenuOpen(false)}
-        onLogout={() => {}}
-        userName="디자인 데모"
-        subscription={{
-          tier: "FREE",
-          remainingQuizzes: 5,
-        }}
-        onNavigate={() => {}}
-      />
-    </div>
+    </QuizLayout>
   );
 }

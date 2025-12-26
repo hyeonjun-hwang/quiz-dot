@@ -1,17 +1,15 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Header } from "@/components/common/Header";
+import { QuizLayout } from "@/components/layout/QuizLayout";
 import { QuizCreation } from "@/components/QuizCreation";
-import { SideMenu } from "@/components/common/SideMenu";
 import { useAuthStore } from "@/stores/auth";
 import { toast } from "sonner";
 
 export function QuizCreationPage() {
-  const [sideMenuOpen, setSideMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   // Auth store에서 사용자 정보 가져오기
-  const { user, session, initialize, signOut } = useAuthStore();
+  const { user, session, initialize } = useAuthStore();
 
   // 컴포넌트 마운트 시 세션 확인
   useEffect(() => {
@@ -25,13 +23,6 @@ export function QuizCreationPage() {
       navigate("/sign-in");
     }
   }, [session, user, navigate]);
-
-  // 로그아웃 핸들러
-  const handleLogout = async () => {
-    await signOut();
-    toast.success("로그아웃되었습니다");
-    navigate("/sign-in");
-  };
 
   // 업그레이드 필요 시 호출
   const handleUpgradeNeeded = () => {
@@ -51,25 +42,12 @@ export function QuizCreationPage() {
   const remainingQuizzes = user.quiz_limit_daily - user.quiz_count_today;
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header onMenuClick={() => setSideMenuOpen(true)} />
+    <QuizLayout>
       <QuizCreation
         accessToken={session?.access_token || ""}
         remainingQuizzes={remainingQuizzes}
         onUpgradeNeeded={handleUpgradeNeeded}
       />
-
-      <SideMenu
-        open={sideMenuOpen}
-        onClose={() => setSideMenuOpen(false)}
-        onLogout={handleLogout}
-        userName={user.nickname || user.email}
-        subscription={{
-          tier: user.subscription_plan.toUpperCase() as "FREE" | "PRO",
-          remainingQuizzes: remainingQuizzes,
-        }}
-        onNavigate={() => {}}
-      />
-    </div>
+    </QuizLayout>
   );
 }

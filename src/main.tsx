@@ -14,6 +14,9 @@ import { Toaster } from "sonner";
 import SignCallback from "./pages/auth/sign-callback.tsx";
 import Subscription from "./pages/sub/subscription.tsx";
 import SubscriptionCancel from "./pages/sub/subscription-cancel.tsx";
+import { HistoryPage } from "./pages/History/HistoryPage.tsx";
+import { SharedQuizPage } from "./pages/Quiz/SharedQuizPage.tsx";
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
@@ -32,6 +35,9 @@ createRoot(document.getElementById("root")!).render(
 
           {/* 요약 관련 경로 */}
           <Route path="/summary/result" element={<SummaryResultPage />} />
+
+          {/* 학습 기록 */}
+          <Route path="/history" element={<HistoryPage />} />
         </Route>
 
         {/* 레이아웃 없이 단독으로 보여줄 페이지 (로그인/구독 등) */}
@@ -46,6 +52,10 @@ createRoot(document.getElementById("root")!).render(
           path="/sub/subscriptioncancel"
           element={<SubscriptionCancel />}
         />
+        {/* <Route path="/sign-up" element={<Signup />} /> */}
+
+        {/* 퀴즈 공유 페이지 */}
+        <Route path="/shared/:shared_token" element={<SharedQuizPage />} />
       </Routes>
 
       {/* 전역 알림 설정 */}
