@@ -3,6 +3,7 @@ import { Button } from "../ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import { Separator } from "../ui/separator";
 import { Badge } from "../ui/badge";
+import { useNavigate } from "react-router";
 
 interface SideMenuProps {
   open: boolean;
@@ -24,6 +25,8 @@ export function SideMenu({
   subscription,
   onNavigate,
 }: SideMenuProps) {
+  const navigate = useNavigate();
+
   const handleNavigation = (page: string) => {
     onNavigate(page);
     onClose();
@@ -47,7 +50,9 @@ export function SideMenu({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">구독 상태</p>
-              <Badge variant={subscription.tier === "PRO" ? "default" : "secondary"}>
+              <Badge
+                variant={subscription.tier === "PRO" ? "default" : "secondary"}
+              >
                 {subscription.tier}
               </Badge>
             </div>
@@ -71,7 +76,7 @@ export function SideMenu({
             <Button
               variant="ghost"
               className="w-full justify-start"
-              onClick={() => handleNavigation("history")}
+              onClick={() => navigate("/history")}
             >
               <Clock className="mr-2 h-4 w-4" />
               학습 기록

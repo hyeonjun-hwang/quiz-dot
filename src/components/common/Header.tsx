@@ -1,6 +1,7 @@
 import { Menu } from "lucide-react";
 import { Logo } from "./Logo";
 import { Button } from "../ui/button";
+import { useNavigate } from "react-router";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -8,10 +9,18 @@ interface HeaderProps {
 }
 
 function Header({ onMenuClick, showMenu = true }: HeaderProps) {
+  const navigate = useNavigate();
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
       <div className="container mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
-        <Logo className="text-xl" />
+        <Button
+          variant="ghost"
+          onClick={() => {
+            navigate("/quiz/create");
+          }}
+        >
+          <Logo className="text-xl" />
+        </Button>
         {showMenu && (
           <Button variant="ghost" size="icon" onClick={onMenuClick}>
             <Menu className="h-5 w-5" />
@@ -20,7 +29,7 @@ function Header({ onMenuClick, showMenu = true }: HeaderProps) {
         )}
       </div>
     </header>
-  )
+  );
 }
 
-export {Header};
+export { Header };
