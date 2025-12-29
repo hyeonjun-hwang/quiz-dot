@@ -16,6 +16,7 @@ import Subscription from "./pages/sub/subscription.tsx";
 import SubscriptionCancel from "./pages/sub/subscription-cancel.tsx";
 import { HistoryPage } from "./pages/History/HistoryPage.tsx";
 import { SharedQuizPage } from "./pages/Quiz/SharedQuizPage.tsx";
+import { ContactBoardPage } from "./pages/Contact/ContactBoardPage.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -38,6 +39,9 @@ createRoot(document.getElementById("root")!).render(
 
           {/* 학습 기록 */}
           <Route path="/history" element={<HistoryPage />} />
+
+          {/* 문의 게시판 */}
+          <Route path="/contact" element={<ContactBoardPage />} />
         </Route>
 
         {/* 레이아웃 없이 단독으로 보여줄 페이지 (로그인/구독 등) */}
