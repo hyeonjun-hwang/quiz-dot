@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from "react-router";
 import { QuizLayout } from "@/components/layout/QuizLayout";
 import { QuizResult, type QuizResultData } from "../../components/QuizResult";
 import type { Question } from "../../components/QuizSolving";
+import { generateQuiz } from "@/api/generateQuiz";
+import { toast } from "sonner";
 
 export function QuizResultPage() {
   const navigate = useNavigate();
@@ -68,7 +70,7 @@ export function QuizResultPage() {
     navigate("/quiz/create");
   };
 
-  const handleRetryWrong = () => {
+  const handleRetryWrong = async () => {
     // 오답 문제만 필터링
     const { questions, quizData } = location.state || {};
 
@@ -77,33 +79,49 @@ export function QuizResultPage() {
     }
 
     // isCorrect가 false인 문제들만 추출
-    const wrongQuestionIds = quizResult.questions
+    const wrongQuestions = quizResult.questions
       .filter((q) => !q.isCorrect)
-      .map((q) => q.id);
+      .map((q) => q.question);
 
-    const wrongQuestions = questions.filter((q: Question) =>
-      wrongQuestionIds.includes(q.id)
-    );
+    if (wrongQuestions.length === 0) {
+      toast.info("틀린 문제가 없습니다.");
+      return;
+    }
 
-    // QuizSolvingPage가 기대하는 형식으로 변환 (Question -> API quiz 형식)
-    const wrongQuizzesInApiFormat = wrongQuestions.map((q: Question) => ({
-      id: q.id.replace('q-', ''), // "q-1" -> "1"
-      question: q.question,
-      type: q.type,
-      options: q.options || [],
-      answer: q.answer,
-      explanation: (q as any).explanation || "해설이 제공되지 않았습니다.",
-    }));
+    try {
+      toast.loading("틀린 문제와 관련된 새로운 퀴즈를 생성하는 중...");
 
-    // 오답 문제들로 다시 퀴즈 풀기 페이지로 이동
-    navigate("/quiz/solving", {
-      state: {
-        quizData: {
-          ...quizData,
-          quizzes: wrongQuizzesInApiFormat, // quizzes 속성으로 전달
+      // 틀린 문제들을 학습 자료 텍스트로 변환
+      const wrongQuestionsText = wrongQuestions.join("\n\n");
+
+      // quizData에서 원본 설정 가져오기 (없으면 기본값 사용)
+      const quizType = quizData?.type || "multiple_choice";
+      const quizDifficulty = quizData?.difficulty || "medium";
+      const quizCount = wrongQuestions.length; // 틀린 문제 수만큼
+
+      // 틀린 문제들을 기반으로 새로운 퀴즈 생성
+      const newQuizData = await generateQuiz({
+        text: wrongQuestionsText,
+        type: quizType,
+        count: quizCount,
+        difficulty: quizDifficulty,
+        failedQuestions: wrongQuestions,
+      });
+
+      toast.dismiss();
+      toast.success("새로운 퀴즈가 생성되었습니다!");
+
+      // 생성된 퀴즈로 문제 풀이 페이지로 이동
+      navigate("/quiz/solving", {
+        state: {
+          quizData: newQuizData,
         },
-      },
-    });
+      });
+    } catch (error) {
+      toast.dismiss();
+      console.error("퀴즈 생성 오류:", error);
+      toast.error(error instanceof Error ? error.message : "퀴즈 생성에 실패했습니다.");
+    }
   };
 
   // 퀴즈 결과가 로드되지 않았으면 로딩 표시
