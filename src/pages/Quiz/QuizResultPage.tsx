@@ -89,6 +89,10 @@ export function QuizResultPage() {
     }
 
     try {
+      console.log("=== 오답 다시 풀기 시작 ===");
+      console.log("틀린 문제 개수:", wrongQuestions.length);
+      console.log("틀린 문제들:", wrongQuestions);
+
       toast.loading("틀린 문제와 관련된 새로운 퀴즈를 생성하는 중...");
 
       // 틀린 문제들을 학습 자료 텍스트로 변환
@@ -99,6 +103,8 @@ export function QuizResultPage() {
       const quizDifficulty = quizData?.difficulty || "medium";
       const quizCount = wrongQuestions.length; // 틀린 문제 수만큼
 
+      console.log("요청할 퀴즈 개수:", quizCount);
+
       // 틀린 문제들을 기반으로 새로운 퀴즈 생성
       const newQuizData = await generateQuiz({
         text: wrongQuestionsText,
@@ -108,8 +114,18 @@ export function QuizResultPage() {
         failedQuestions: wrongQuestions,
       });
 
+      console.log("생성된 퀴즈 데이터:", newQuizData);
+      console.log("생성된 퀴즈 개수:", newQuizData?.quizzes?.length || 0);
+
+      // 퀴즈 개수 검증
+      const generatedCount = newQuizData?.quizzes?.length || 0;
+      if (generatedCount !== quizCount) {
+        console.warn(`⚠️ 요청한 문제 개수(${quizCount})와 생성된 문제 개수(${generatedCount})가 다릅니다!`);
+        toast.warning(`${quizCount}개 요청했으나 ${generatedCount}개만 생성되었습니다.`);
+      }
+
       toast.dismiss();
-      toast.success("새로운 퀴즈가 생성되었습니다!");
+      toast.success(`새로운 퀴즈 ${generatedCount}개가 생성되었습니다!`);
 
       // 생성된 퀴즈로 문제 풀이 페이지로 이동
       navigate("/quiz/solving", {
