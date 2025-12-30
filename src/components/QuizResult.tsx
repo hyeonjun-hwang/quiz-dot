@@ -112,9 +112,9 @@ export function QuizResult({ result, onRetryWrong, onBackToHome }: QuizResultPro
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col items-center p-4 bg-success/10 rounded-lg">
-              <CheckCircle2 className="h-8 w-8 text-success mb-2" />
-              <div className="text-2xl">{result.correctCount}</div>
+            <div className="flex flex-col items-center p-4 bg-blue-50 rounded-lg">
+              <CheckCircle2 className="h-8 w-8 mb-2 text-blue-600 " />
+              <div className="text-2xl font-medium">{result.correctCount}</div>
               <div className="text-sm text-muted-foreground">정답</div>
             </div>
             <div className="flex flex-col items-center p-4 bg-destructive/10 rounded-lg">
@@ -181,15 +181,15 @@ export function QuizResult({ result, onRetryWrong, onBackToHome }: QuizResultPro
                     <div className="space-y-3">
                       <div className="p-3 rounded-lg bg-muted">
                         <p className="text-sm text-muted-foreground mb-1">내 답변</p>
-                        <p className={isCorrect ? "text-success" : "text-destructive"}>
+                        <p className={isCorrect ? "text-blue-600 font-medium" : "text-destructive"}>
                           {question.userAnswer || "(답변 없음)"}
                         </p>
                       </div>
 
                       {!isCorrect && (
-                        <div className="p-3 rounded-lg bg-success/10">
+                        <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
                           <p className="text-sm text-muted-foreground mb-1">정답</p>
-                          <p className="text-success">{question.correctAnswer}</p>
+                          <p className="text-blue-600 font-medium">{question.correctAnswer}</p>
                         </div>
                       )}
 
@@ -202,7 +202,7 @@ export function QuizResult({ result, onRetryWrong, onBackToHome }: QuizResultPro
                                 key={optIdx}
                                 className={`p-2 rounded text-sm ${
                                   option === question.correctAnswer
-                                    ? "bg-success/10 text-success"
+                                    ? "bg-blue-50 text-blue-600 font-medium border border-blue-200"
                                     : option === question.userAnswer
                                     ? "bg-destructive/10 text-destructive"
                                     : "bg-muted"
