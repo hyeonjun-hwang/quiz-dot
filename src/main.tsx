@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router"; // react-router-dom을 사용 중이라면 확인 필요
+import { BrowserRouter, Routes, Route } from "react-router";
 import { RootLayout } from "./pages/RootLayout.tsx";
 import { QuizCreationPage } from "./pages/Quiz/QuizCreationPage.tsx";
 import { QuizLoadingPage } from "./pages/Quiz/QuizLoadingPage.tsx";
@@ -9,7 +9,6 @@ import { QuizSolvingPage } from "./pages/Quiz/QuizSolvingPage.tsx";
 import { QuizResultPage } from "./pages/Quiz/QuizResultPage.tsx";
 import "./index.css";
 import App from "./App.tsx";
-import Signin from "./pages/auth/sign-in.tsx";
 import { Toaster } from "sonner";
 import SignCallback from "./pages/auth/sign-callback.tsx";
 import Subscription from "./pages/sub/subscription.tsx";
@@ -24,8 +23,6 @@ createRoot(document.getElementById("root")!).render(
       <Routes>
         {/* 공통 레이아웃(네비게이션 바 등)이 적용되는 페이지들 */}
         <Route element={<RootLayout />}>
-          <Route path="/" element={<App />} />
-
           {/* 퀴즈 생성 페이지 */}
           <Route path="/quiz/create" element={<QuizCreationPage />} />
 
@@ -42,20 +39,22 @@ createRoot(document.getElementById("root")!).render(
 
           {/* 문의 게시판 */}
           <Route path="/contact" element={<ContactBoardPage />} />
+
+          {/* 구독 페이지 */}
+          <Route path="/sub/subscription" element={<Subscription />} />
+
+          {/* 구독 취소 페이지 */}
+          <Route
+            path="/sub/subscriptioncancel"
+            element={<SubscriptionCancel />}
+          />
         </Route>
 
         {/* 레이아웃 없이 단독으로 보여줄 페이지 (로그인/구독 등) */}
-        <Route path="/sign-in" element={<Signin />} />
+        <Route path="/" element={<App />} />
         {/* 콜백 페이지 */}
         <Route path="/auth/callback" element={<SignCallback />} />
 
-        {/* 구독 페이지 */}
-        <Route path="/sub/subscription" element={<Subscription />} />
-        {/* 구독 취소 페이지 */}
-        <Route
-          path="/sub/subscriptioncancel"
-          element={<SubscriptionCancel />}
-        />
         {/* <Route path="/sign-up" element={<Signup />} /> */}
 
         {/* 퀴즈 공유 페이지 */}
