@@ -1,25 +1,19 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Header } from "@/components/common/Header";
-import { SideMenu } from "@/components/common/SideMenu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Award, Share2, AlertCircle } from "lucide-react";
-import { Toaster } from "@/components/ui/sonner";
 import { getHistory, type HistoryItem } from "@/api/getHistory";
-import { useAuthStore } from "@/stores/auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShareDialog } from "@/components/ShareDialog";
 
 export function HistoryPage() {
-  const [sideMenuOpen, setSideMenuOpen] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sharingQuiz, setSharingQuiz] = useState<HistoryItem | null>(null);
   const navigate = useNavigate();
-  const { user } = useAuthStore();
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -64,14 +58,9 @@ export function HistoryPage() {
     );
   };
 
-  const handleNavigate = (page: string) => {
-    navigate(`/${page}`);
-  };
-
   return (
     <div className="min-h-screen bg-background">
-      <Toaster />
-      <Header onMenuClick={() => setSideMenuOpen(true)} />
+      {/* <Header onMenuClick={() => setSideMenuOpen(true)} /> */}
       <div className="container max-w-4xl mx-auto p-4 space-y-6">
         <div>
           <h1>학습 기록</h1>
@@ -159,18 +148,6 @@ export function HistoryPage() {
         onClose={() => setSharingQuiz(null)}
         quiz={sharingQuiz}
         onStateChange={handleQuizSharingUpdate}
-      />
-
-      <SideMenu
-        open={sideMenuOpen}
-        onClose={() => setSideMenuOpen(false)}
-        onLogout={() => {}}
-        userName={user?.nickname || "사용자"}
-        subscription={{
-          tier: "FREE",
-          remainingQuizzes: 5,
-        }}
-        onNavigate={handleNavigate}
       />
     </div>
   );
