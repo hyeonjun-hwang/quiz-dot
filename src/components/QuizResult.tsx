@@ -147,13 +147,13 @@ export function QuizResult({ result, onRetryWrong, onBackToHome }: QuizResultPro
 
           return (
             <Collapsible key={question.id} open={isExpanded} onOpenChange={() => toggleQuestion(question.id)}>
-              <Card className={isCorrect ? "border-success/30" : "border-destructive/30"}>
+              <Card className={isCorrect ? "border-blue-300" : "border-destructive/30"}>
                 <CollapsibleTrigger className="w-full">
                   <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-start gap-3 flex-1 text-left">
                         {isCorrect ? (
-                          <CheckCircle2 className="h-5 w-5 text-success mt-0.5 shrink-0" />
+                          <CheckCircle2 className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
                         ) : (
                           <XCircle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
                         )}
@@ -187,7 +187,7 @@ export function QuizResult({ result, onRetryWrong, onBackToHome }: QuizResultPro
                       </div>
 
                       {!isCorrect && (
-                        <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                        <div className="p-3 rounded-lg bg-blue-50">
                           <p className="text-sm text-muted-foreground mb-1">정답</p>
                           <p className="text-blue-600 font-medium">{question.correctAnswer}</p>
                         </div>
@@ -202,7 +202,7 @@ export function QuizResult({ result, onRetryWrong, onBackToHome }: QuizResultPro
                                 key={optIdx}
                                 className={`p-2 rounded text-sm ${
                                   option === question.correctAnswer
-                                    ? "bg-blue-50 text-blue-600 font-medium border border-blue-200"
+                                    ? "bg-blue-50 text-blue-600 font-medium"
                                     : option === question.userAnswer
                                     ? "bg-destructive/10 text-destructive"
                                     : "bg-muted"

@@ -764,21 +764,24 @@ export function ContactBoardPage() {
 
         {/* 추가 안내 */}
         <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="pt-6">
-            <div className="space-y-3">
-              <h3 className="text-sm">💡 빠른 답변을 위한 팁</h3>
-              <ul className="text-sm text-muted-foreground space-y-2">
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-600">•</span>
-                  <span>발생한 문제를 구체적으로 설명해주세요</span>
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium flex items-center gap-2">
+                <span>💡</span>
+                <span>빠른 답변을 위한 팁</span>
+              </h3>
+              <ul className="text-sm text-muted-foreground space-y-3 pl-1">
+                <li className="flex items-start gap-3">
+                  <span className="text-blue-600 font-bold mt-0.5">•</span>
+                  <span className="flex-1">발생한 문제를 구체적으로 설명해주세요</span>
                 </li>
-                {/* <li className="flex items-start gap-2">
-                  <span className="text-blue-600">•</span>
-                  <span>스크린샷이 있다면 함께 첨부해주시면 좋습니다</span>
+                {/* <li className="flex items-start gap-3">
+                  <span className="text-blue-600 font-bold mt-0.5">•</span>
+                  <span className="flex-1">스크린샷이 있다면 함께 첨부해주시면 좋습니다</span>
                 </li>  */}
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-600">•</span>
-                  <span>일반적으로 1-2 영업일 내에 답변 드립니다</span>
+                <li className="flex items-start gap-3">
+                  <span className="text-blue-600 font-bold mt-0.5">•</span>
+                  <span className="flex-1">일반적으로 1-2 영업일 내에 답변 드립니다</span>
                 </li>
               </ul>
             </div>
