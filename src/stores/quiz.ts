@@ -1,35 +1,7 @@
+import type { ActiveQuiz, SessionAnswer } from "@/types/quiz";
 import { create } from "zustand";
 
-//1. UI 및 API 통신에서 공통으로 사용할 데이터 규격 (Interface)
-
-// 각 퀴즈 문제의 상세 콘텐츠
-export interface QuizQuestionContent {
-  id: string; // 문제 고유 ID
-  questionText: string; // 문제 텍스트
-  options: string[]; // 객관식 선택지 배열 (단답형인 경우 빈 배열)
-  correctAnswer: string; // 정답 텍스트
-  explanation: string; // 정답 해설
-  type: "multiple_choice" | "short_answer"; // 퀴즈 타입
-}
-
-// 현재 활성화된 퀴즈 전체 정보
-export interface ActiveQuiz {
-  quizId: string; // 퀴즈 세션 고유 ID
-  title: string; // 퀴즈 제목
-  summary: string; // 퀴즈 요약 설명
-  type: string; // 퀴즈 유형
-  difficulty: string; // 난이도
-  questions: QuizQuestionContent[]; // 문제 리스트
-}
-
-// 사용자가 실시간으로 입력하는 답변 정보 (배열 형태로 관리)
-export interface SessionAnswer {
-  questionId: string; // 문제 고유 ID
-  userSelectedAnswer: string; // 사용자가 선택/입력한 답변
-  isCorrect: boolean; // 정답 여부
-}
-
-// 2. 스토어 상태 및 액션 정의
+// 1. 스토어 상태 및 액션 정의
 
 interface QuizState {
   // --- 상태 (State) ---

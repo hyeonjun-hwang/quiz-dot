@@ -1,6 +1,7 @@
 import type { SubscriptionState } from "@/types/subscription";
 import { create } from "zustand";
 
+// 1. 스토어 상태 및 액션 정의
 export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   subscription: null,
   isLoading: false,
