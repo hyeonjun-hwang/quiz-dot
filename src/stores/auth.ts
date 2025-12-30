@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { supabase } from "@/utils/supabase";
-import type { AuthState } from "@/types/auth";
+import type { AuthState, UserProfile } from "@/types/auth";
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   // --- 초기 상태 설정 ---
