@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { supabase } from "@/utils/supabase";
-import type { AuthState } from "@/types/auth";
+import type { AuthState, UserProfile } from "@/types/auth";
 
+// 1. 스토어 상태 및 액션 정의
 export const useAuthStore = create<AuthState>((set, get) => ({
   // --- 초기 상태 설정 ---
   user: null,
