@@ -17,6 +17,7 @@ type InquiryStatus = "pending" | "answered";
 interface Reply {
   id: string;
   author: string;
+  authorEmail: string;
   role: "admin" | "user";
   content: string;
   createdAt: string;
@@ -28,6 +29,8 @@ interface Inquiry {
   subject: string;
   message: string;
   email: string;
+  userId: string;
+  authorEmail: string;
   status: InquiryStatus;
   createdAt: string;
   replies: Reply[];
@@ -62,8 +65,8 @@ export function ContactBoardPage() {
       try {
         setLoading(true);
 
-        // 문의 내역 가져오기
-        const { data: inquiriesData, error: inquiriesError } = await supabase.from("inquiries").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+        // 문의 내역 가져오기 (모든 사용자의 문의)
+        const { data: inquiriesData, error: inquiriesError } = await supabase.from("inquiries").select("*").order("created_at", { ascending: false });
 
         if (inquiriesError) {
           console.error("문의 내역 불러오기 오류:", inquiriesError);
@@ -73,6 +76,13 @@ export function ContactBoardPage() {
         // 각 문의에 대한 답글 가져오기
         const inquiriesWithReplies = await Promise.all(
           (inquiriesData || []).map(async (inquiry) => {
+            // 작성자 이메일 가져오기
+            const { data: userData } = await supabase
+              .from("users")
+              .select("email")
+              .eq("id", inquiry.user_id)
+              .single();
+
             const { data: repliesData, error: repliesError } = await supabase.from("inquiry_replies").select("*").eq("inquiry_id", inquiry.id).order("created_at", { ascending: true });
 
             if (repliesError) {
@@ -82,28 +92,46 @@ export function ContactBoardPage() {
                 category: "",
                 subject: inquiry.title,
                 message: inquiry.content,
-                email: user.email || "",
+                email: "",
+                userId: inquiry.user_id,
+                authorEmail: userData?.email || "",
                 status: "pending" as InquiryStatus,
                 createdAt: inquiry.created_at,
                 replies: [],
               };
             }
 
+            // 각 답글의 작성자 이메일 가져오기
+            const repliesWithEmails = await Promise.all(
+              (repliesData || []).map(async (reply) => {
+                const { data: replyUserData } = await supabase
+                  .from("users")
+                  .select("email")
+                  .eq("id", reply.user_id)
+                  .single();
+
+                return {
+                  id: reply.id,
+                  author: reply.user_id,
+                  authorEmail: replyUserData?.email || "",
+                  role: (reply.user_id === user.id ? "user" : "admin") as "user" | "admin",
+                  content: reply.content,
+                  createdAt: reply.created_at,
+                };
+              })
+            );
+
             return {
               id: inquiry.id,
               category: "",
               subject: inquiry.title,
               message: inquiry.content,
-              email: user.email || "",
+              email: "",
+              userId: inquiry.user_id,
+              authorEmail: userData?.email || "",
               status: (repliesData && repliesData.length > 0 ? "answered" : "pending") as InquiryStatus,
               createdAt: inquiry.created_at,
-              replies: (repliesData || []).map((reply) => ({
-                id: reply.id,
-                author: reply.user_id === user.id ? user.email || "user" : "관리자",
-                role: (reply.user_id === user.id ? "user" : "admin") as "user" | "admin",
-                content: reply.content,
-                createdAt: reply.created_at,
-              })),
+              replies: repliesWithEmails,
             };
           })
         );
@@ -153,6 +181,8 @@ export function ContactBoardPage() {
         subject: newSubject,
         message: newMessage,
         email: newEmail,
+        userId: user.id,
+        authorEmail: user.email || "",
         status: "pending",
         createdAt: new Date().toISOString(),
         replies: [],
@@ -203,7 +233,8 @@ export function ContactBoardPage() {
       // 로컬 state에도 추가 (UI 업데이트용)
       const newReply: Reply = {
         id: data[0].id,
-        author: user.email || "user@example.com",
+        author: user.id,
+        authorEmail: user.email || "",
         role: "user",
         content: replyContent,
         createdAt: new Date().toISOString(),
@@ -439,8 +470,11 @@ export function ContactBoardPage() {
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center gap-2 flex-wrap">
                           <Badge variant="secondary" className="rounded-full w-8 h-8 flex items-center justify-center p-0">
-                            {user?.email?.[0]?.toUpperCase() || "U"}
+                            {inquiry.authorEmail?.[0]?.toUpperCase() || "U"}
                           </Badge>
+                          {inquiry.userId === user?.id && (
+                            <Badge variant="secondary" className="text-xs">내 글</Badge>
+                          )}
                           <Badge variant={inquiry.status === "answered" ? "default" : "outline"}>
                             {inquiry.status === "answered" ? (
                               <>
@@ -495,8 +529,11 @@ export function ContactBoardPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant="secondary" className="rounded-full w-8 h-8 flex items-center justify-center p-0">
-                      {user?.email?.[0]?.toUpperCase() || "U"}
+                      {selectedInquiry.authorEmail?.[0]?.toUpperCase() || "U"}
                     </Badge>
+                    {selectedInquiry.userId === user?.id && (
+                      <Badge variant="secondary" className="text-xs">내 글</Badge>
+                    )}
                     <Badge variant={selectedInquiry.status === "answered" ? "default" : "outline"}>
                       {selectedInquiry.status === "answered" ? (
                         <>
@@ -509,48 +546,50 @@ export function ContactBoardPage() {
                       )}
                     </Badge>
                   </div>
-                  <div className="flex gap-2">
-                    {editingInquiryId === selectedInquiry.id ? (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setEditingInquiryId(null)}
-                        >
-                          취소
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => handleUpdateInquiry(selectedInquiry.id)}
-                        >
-                          저장
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setEditingInquiryId(selectedInquiry.id);
-                            setEditSubject(selectedInquiry.subject);
-                            setEditMessage(selectedInquiry.message);
-                          }}
-                        >
-                          <Edit2 className="h-4 w-4 mr-1" />
-                          수정
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteInquiry(selectedInquiry.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          삭제
-                        </Button>
-                      </>
-                    )}
-                  </div>
+                  {selectedInquiry.userId === user?.id && (
+                    <div className="flex gap-2">
+                      {editingInquiryId === selectedInquiry.id ? (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setEditingInquiryId(null)}
+                          >
+                            취소
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleUpdateInquiry(selectedInquiry.id)}
+                          >
+                            저장
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingInquiryId(selectedInquiry.id);
+                              setEditSubject(selectedInquiry.subject);
+                              setEditMessage(selectedInquiry.message);
+                            }}
+                          >
+                            <Edit2 className="h-4 w-4 mr-1" />
+                            수정
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteInquiry(selectedInquiry.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            삭제
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
                 {editingInquiryId === selectedInquiry.id ? (
                   <div className="space-y-3">
@@ -597,19 +636,17 @@ export function ContactBoardPage() {
                 답글 {selectedInquiry.replies.length}개
               </h3>
               {selectedInquiry.replies.map((reply) => (
-                <Card key={reply.id} className={reply.role === "admin" ? "bg-blue-50 border-blue-200" : ""}>
+                <Card key={reply.id}>
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium">{reply.author}</span>
-                        {reply.role === "admin" && (
-                          <Badge variant="default" className="text-xs">
-                            관리자
-                          </Badge>
-                        )}
+                        <Badge variant="secondary" className="rounded-full w-8 h-8 flex items-center justify-center p-0">
+                          {reply.authorEmail?.[0]?.toUpperCase() || "U"}
+                        </Badge>
+                        <span className="font-medium">{reply.authorEmail}</span>
                         <span className="text-xs text-muted-foreground">{new Date(reply.createdAt).toLocaleString("ko-KR")}</span>
                       </div>
-                      {reply.role === "user" && reply.author === user?.email && (
+                      {reply.author === user?.id && (
                         <div className="flex gap-2">
                           {editingReplyId === reply.id ? (
                             <>
