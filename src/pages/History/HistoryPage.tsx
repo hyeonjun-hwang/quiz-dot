@@ -7,13 +7,16 @@ import { Clock, Award, Share2, AlertCircle } from "lucide-react";
 import { getHistory, type HistoryItem } from "@/api/getHistory";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShareDialog } from "@/components/ShareDialog";
+import { useShareQuiz } from "@/hooks/use-share-quiz";
 
 export function HistoryPage() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sharingQuiz, setSharingQuiz] = useState<HistoryItem | null>(null);
   const navigate = useNavigate();
+
+  // 1. 리팩토링된 훅 호출
+  const { sharingQuiz, openShareDialog, closeShareDialog } = useShareQuiz();
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -32,7 +35,7 @@ export function HistoryPage() {
     };
 
     fetchHistory();
-  }, []);
+  }, [navigate]);
 
   // sharingQuiz 상태가 변경될 때마다 history 배열을 업데이트하여
   // UI가 공유 상태(is_shared, shared_token) 변경을 즉시 반영하도록 함
@@ -110,30 +113,32 @@ export function HistoryPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-6">
-                      <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1">
                         <Award className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">
+                        <span className="text-xs">
                           {item.correct_count} / {item.total_count} 정답
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">
+                        <span className="text-xs">
                           {new Date(item.created_at).toLocaleDateString(
                             "ko-KR"
                           )}
                         </span>
                       </div>
                     </div>
+                    {/* 2. 훅에서 반환된 함수 사용 */}
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setSharingQuiz(item)}
+                      onClick={() => openShareDialog(item)}
+                      className="flex gap-0"
                     >
                       <Share2 className="h-4 w-4 mr-2" />
-                      공유하기
+                      <p>공유하기</p>
                     </Button>
                   </div>
                 </CardContent>
@@ -143,9 +148,10 @@ export function HistoryPage() {
         )}
       </div>
 
+      {/* 3. 부모 컴포넌트가 직접 렌더링하고, 훅의 상태와 핸들러를 전달 */}
       <ShareDialog
         open={!!sharingQuiz}
-        onClose={() => setSharingQuiz(null)}
+        onClose={closeShareDialog}
         quiz={sharingQuiz}
         onStateChange={handleQuizSharingUpdate}
       />

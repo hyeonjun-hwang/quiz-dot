@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { QuizLayout } from "@/components/layout/QuizLayout";
 import { QuizCreation } from "@/components/QuizCreation";
@@ -8,21 +8,37 @@ import { toast } from "sonner";
 export function QuizCreationPage() {
   const navigate = useNavigate();
 
+  // 이 페이지의 인증 확인이 완료되었는지 추적하는 상태
+  const [authChecked, setAuthChecked] = useState(false);
   // Auth store에서 사용자 정보 가져오기
   const { user, session, initialize } = useAuthStore();
 
-  // 컴포넌트 마운트 시 세션 확인
   useEffect(() => {
-    initialize();
-  }, [initialize]);
+    const checkAuth = async () => {
+      // store에 이미 사용자 정보가 있는지 확인
+      const initialState = useAuthStore.getState();
+      // 이미 정보 있으면 확인 완료로 처리
+      if (initialState.user) {
+        setAuthChecked(true);
+        return;
+      }
 
-  // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
-  useEffect(() => {
-    if (!session && !user) {
-      toast.error("로그인이 필요합니다");
-      navigate("/");
-    }
-  }, [session, user, navigate]);
+      // 사용자 정보 없으면 initialize()를 호출하고 끝날 때까지 기다림 (await)
+      await initialize();
+
+      // initialize() 끝나고 스토어의 최신 상태를 다시 가져오기
+      const finalState = useAuthStore.getState();
+      if (finalState.user) {
+        // 최종적으로 사용자가 있으면 확인 완료
+        setAuthChecked(true);
+      } else {
+        // // 최종적으로 사용자가 없으면 로그인 페이지로 이동
+        toast.error("로그인이 필요합니다");
+        navigate("/sign-in");
+      }
+    };
+    checkAuth();
+  }, [initialize, navigate]);
 
   // 업그레이드 필요 시 호출
   const handleUpgradeNeeded = () => {
@@ -32,7 +48,7 @@ export function QuizCreationPage() {
   };
 
   // 로딩 중이거나 사용자 정보가 없으면 로딩 표시
-  if (!user) {
+  if (!authChecked) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <p className="text-muted-foreground">로딩 중...</p>

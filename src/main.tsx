@@ -16,6 +16,7 @@ import SubscriptionCancel from "./pages/sub/subscription-cancel.tsx";
 import { HistoryPage } from "./pages/History/HistoryPage.tsx";
 import { SharedQuizPage } from "./pages/Quiz/SharedQuizPage.tsx";
 import { ContactBoardPage } from "./pages/Contact/ContactBoardPage.tsx";
+import SigninPage from "./pages/auth/sign-in.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -55,6 +56,7 @@ createRoot(document.getElementById("root")!).render(
         {/* 콜백 페이지 */}
         <Route path="/auth/callback" element={<SignCallback />} />
 
+        <Route path="/sign-in" element={<SigninPage />} />
         {/* <Route path="/sign-up" element={<Signup />} /> */}
 
         {/* 퀴즈 공유 페이지 */}
