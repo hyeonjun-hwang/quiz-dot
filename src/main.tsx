@@ -62,7 +62,13 @@ createRoot(document.getElementById("root")!).render(
       </Routes>
 
       {/* 전역 알림 설정 */}
-      <Toaster position="top-center" richColors closeButton />
+      <Toaster
+        position="top-center"
+        richColors
+        closeButton
+        visibleToasts={1} // 동시에 여러 개가 쌓이지 않도록 제한
+        expand={false} // 토스트가 겹쳐 보이지 않게 설정
+      />
     </BrowserRouter>
   </StrictMode>
 );

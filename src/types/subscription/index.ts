@@ -14,6 +14,9 @@ export interface SubscriptionState {
 
   // 2. 액션
 
+  // 구독 정보 API 호출 및 상태 관리
+  fetchSubscription: () => Promise<void>;
+
   // 최신 구독/제한 정보를 스토어에 저장
   setSubscription: (data: Subscription) => void;
 
