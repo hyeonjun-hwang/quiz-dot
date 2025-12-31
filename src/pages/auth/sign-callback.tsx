@@ -17,7 +17,9 @@ export default function AuthCallback() {
       if (event === "SIGNED_IN" && session) {
         await initialize(); // 이동하기 전에 DB 프로필 정보를 동기화
 
+        // 소셜로그인은 토스트 메시지 여기서 처리
         toast.success("로그인 성공!", {
+          id: "auth-status",
           description: "퀴즈 생성 페이지로 이동합니다.",
         });
         navigate("/quiz/create", { replace: true }); // 세션 확인 후 퀴즈 만들기 페이지로 이동
@@ -27,7 +29,7 @@ export default function AuthCallback() {
       if (event === "INITIAL_SESSION" && !session) {
         // 잠시 대기 후 세션이 없으면 로그인으로 이동 (시간차 고려)
         const timeout = setTimeout(() => {
-          if (!session) navigate("/sign-in");
+          if (!session) navigate("/");
         }, 3000);
         return () => clearTimeout(timeout);
       }

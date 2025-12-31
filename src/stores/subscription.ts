@@ -1,4 +1,5 @@
 import type { SubscriptionState } from "@/types/subscription";
+import { supabase } from "@/utils/supabase";
 import { create } from "zustand";
 
 // 1. 스토어 상태 및 액션 정의
@@ -7,6 +8,40 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   isLoading: false,
   error: null,
 
+  // 구독 정보 API 호출 및 상태 관리
+  fetchSubscription: async () => {
+    set({ isLoading: true });
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("users") // 테이블명이 'profiles'라면 수정하세요
+        .select("subscription_plan, quiz_limit_daily, quiz_count_today")
+        .eq("id", user.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        set({
+          subscription: {
+            plan: data.subscription_plan as "free" | "pro",
+            quizLimitDaily: data.quiz_limit_daily, // DB(snake) -> UI(camel) 매핑
+            quizCountToday: data.quiz_count_today,
+          },
+          error: null,
+        });
+      }
+    } catch (err: any) {
+      set({ error: err.message });
+      console.error("구독 정보 페치 에러:", err);
+    } finally {
+      set({ isLoading: false });
+    }
+  },
   // 데이터 저장
   setSubscription: (data) =>
     set({

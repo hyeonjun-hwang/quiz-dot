@@ -1,10 +1,7 @@
-
-import SigninPage from './auth/sign-in'
+import SigninPage from "./auth/sign-in";
 
 function Home() {
-  return (
-    <SigninPage/>
-  )
+  return <SigninPage />;
 }
 
-export default Home
+export default Home;
