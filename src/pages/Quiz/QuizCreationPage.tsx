@@ -20,13 +20,15 @@ export function QuizCreationPage() {
   useEffect(() => {
     if (!session && !user) {
       toast.error("로그인이 필요합니다");
-      navigate("/sign-in");
+      navigate("/");
     }
   }, [session, user, navigate]);
 
   // 업그레이드 필요 시 호출
   const handleUpgradeNeeded = () => {
-    toast.info("일일 퀴즈 생성 한도를 초과했습니다. Pro 플랜으로 업그레이드하세요!");
+    toast.info(
+      "일일 퀴즈 생성 한도를 초과했습니다. Pro 플랜으로 업그레이드하세요!"
+    );
   };
 
   // 로딩 중이거나 사용자 정보가 없으면 로딩 표시

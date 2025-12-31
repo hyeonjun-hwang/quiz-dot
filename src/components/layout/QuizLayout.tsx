@@ -1,7 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import { useAuthStore } from "@/stores/auth";
-import { toast } from "sonner";
 
 interface QuizLayoutProps {
   children: ReactNode;
@@ -9,13 +8,15 @@ interface QuizLayoutProps {
 
 export function QuizLayout({ children }: QuizLayoutProps) {
   const navigate = useNavigate();
+
   const { user, isLoading } = useAuthStore();
 
-  // 로그인 체크 로직만 유지
   useEffect(() => {
-    if (!isLoading && !user) {
-      toast.error("로그인이 필요합니다.");
-      navigate("/");
+    if (isLoading) return;
+
+    // 토스트 없이 리다이렉트만 수행
+    if (!user) {
+      navigate("/", { replace: true });
     }
   }, [user, isLoading, navigate]);
 
@@ -28,7 +29,6 @@ export function QuizLayout({ children }: QuizLayoutProps) {
   }
 
   if (!user) return null;
-
   // 헤더와 사이드메뉴를 제거하고 내용(children)만 렌더링
   return <div className="w-full">{children}</div>;
 }

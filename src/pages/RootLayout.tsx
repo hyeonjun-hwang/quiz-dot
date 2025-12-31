@@ -1,10 +1,24 @@
 import { Outlet } from "react-router";
-import { Toaster } from "@/components/ui/sonner";
 import { Header } from "@/components/common/Header";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SideMenu } from "@/components/common/SideMenu";
+// 전역 상태 관리를 위한 스토어
+import { useAuthStore } from "@/stores/auth";
+import { useSubscriptionStore } from "@/stores/subscription";
 function RootLayout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // 1. 유저 정보와 구독 정보 동기화 함수 가져오기
+  const { user } = useAuthStore();
+  const { fetchSubscription } = useSubscriptionStore();
+  // 유저 정보가 변경될 때마다 구독 정보 동기화
+  useEffect(() => {
+    if (user) {
+      fetchSubscription(); // 로그인 상태가 감지되면 DB에서 최신 Pro/Free 상태를 가져옴
+    }
+  }, [user, fetchSubscription]); // user 정보가 바뀔 때마다 실행
+
+  // 2. 유저 정보가 변경될 때마다 구독 정보 동기화
   return (
     <div>
       {/* 헤더: 메뉴 버튼 클릭 시 사이드바 열림 상태로 변경 */}
@@ -16,8 +30,6 @@ function RootLayout() {
       <main>
         <Outlet />
       </main>
-      {/* 토스터 */}
-      <Toaster position="top-center" richColors />
     </div>
   );
 }

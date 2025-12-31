@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { supabase } from "@/utils/supabase";
 import type { AuthState, UserProfile } from "@/types/auth";
+import { toast } from "sonner";
 
 // 1. 스토어 상태 및 액션 정의
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -80,11 +81,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (error) throw error;
       // 로그인 성공 시 세션 정보를 바탕으로 초기화 실행
       await get().initialize();
+      // 성공 토스트 메시지 store에서 처리
+      toast.success("로그인 성공!", { id: "auth-status" });
     } catch (err: any) {
-      set({ error: err.message, isLoading: false });
+      toast.error(err.message || "로그인 실패", { id: "auth-status" });
+      set({ isLoading: false });
     }
   },
-
   // 4-1. 구글 소셜 로그인
   signInWithGoogle: async () => {
     try {
