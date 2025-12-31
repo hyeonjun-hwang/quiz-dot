@@ -178,13 +178,14 @@ export function QuizCreation({
       <div className="flex items-center justify-between">
         <div>
           <h1>학습 자료 준비</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
+          <p className="text-muted-foreground mt-1 text-xs">
             텍스트를 입력하거나 PDF 파일을 업로드하세요
           </p>
         </div>
         {/* 남은 퀴즈 생성 횟수 (무료 사용자 제한) */}
-        <div className="text-sm text-muted-foreground">
-          남은 횟수: <span className="text-primary">
+        <div className="text-xs text-muted-foreground flex gap-1">
+          <p>남은 횟수:</p>
+          <span className="text-primary">
             {subscriptionPlan === "pro" ? "무제한" : `${remainingQuizzes}회`}
           </span>
         </div>
