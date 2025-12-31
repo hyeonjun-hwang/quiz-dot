@@ -47,6 +47,7 @@ export function QuizCreationPage() {
         accessToken={session?.access_token || ""}
         remainingQuizzes={remainingQuizzes}
         onUpgradeNeeded={handleUpgradeNeeded}
+        subscriptionPlan={user.subscription_plan}
       />
     </QuizLayout>
   );

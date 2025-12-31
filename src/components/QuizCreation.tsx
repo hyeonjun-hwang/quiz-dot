@@ -23,11 +23,13 @@ import pdfToText from "react-pdftotext"; // PDF를 텍스트로 변환하는 라
  * @param accessToken - 사용자 인증을 위한 액세스 토큰
  * @param remainingQuizzes - 사용자가 생성할 수 있는 남은 퀴즈 개수
  * @param onUpgradeNeeded - 퀴즈 개수 제한에 도달했을 때 호출되는 콜백 (업그레이드 안내)
+ * @param subscriptionPlan - 사용자의 구독 플랜 (free 또는 pro)
  */
 interface QuizCreationProps {
   accessToken: string;
   remainingQuizzes: number;
   onUpgradeNeeded: () => void;
+  subscriptionPlan: "free" | "pro";
 }
 
 /**
@@ -38,6 +40,7 @@ export function QuizCreation({
   accessToken, // NOTE: 현재 미사용 - API 함수가 내부에서 supabase.auth.getSession()으로 직접 토큰을 가져옴. 추후 Props 인터페이스에서 제거 예정
   remainingQuizzes,
   onUpgradeNeeded,
+  subscriptionPlan,
 }: QuizCreationProps) {
   // accessToken은 현재 사용되지 않지만 Props 호환성을 위해 유지 (추후 삭제 예정)
   void accessToken;
@@ -113,14 +116,14 @@ export function QuizCreation({
       // ===== 2. PDF 파일 텍스트 변환 =====
       let combinedText = text; // 기본값은 사용자가 입력한 텍스트
       if (pdfFile) {
-        toast.info("PDF를 텍스트로 변환 중...");
+        // toast.info("PDF를 텍스트로 변환 중...");
         try {
           // pdfToText 라이브러리를 사용하여 PDF → 텍스트 변환
           const extractedText = await pdfToText(pdfFile);
           if (extractedText.trim()) {
             // 기존 텍스트가 있으면 "\n\n"로 구분하여 합치기
             combinedText = text ? `${text}\n\n${extractedText}` : extractedText;
-            toast.success("PDF가 텍스트로 변환되었습니다");
+            // toast.success("PDF가 텍스트로 변환되었습니다");
           }
         } catch (error) {
           // PDF 변환 실패 시 에러 처리
@@ -160,14 +163,16 @@ export function QuizCreation({
       {/* 헤더: 제목 및 남은 횟수 표시 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1>학습 자료 준비</h1>
+          <h1 className="font-bold">학습 자료 준비</h1>
           <p className="text-muted-foreground mt-1">
             텍스트를 입력하거나 PDF 파일을 업로드하세요
           </p>
         </div>
         {/* 남은 퀴즈 생성 횟수 (무료 사용자 제한) */}
         <div className="text-sm text-muted-foreground">
-          남은 횟수: <span className="text-primary">{remainingQuizzes}회</span>
+          남은 횟수: <span className="text-primary">
+            {subscriptionPlan === "pro" ? "무제한" : `${remainingQuizzes}회`}
+          </span>
         </div>
       </div>
 
