@@ -5,15 +5,21 @@ import { QuizResult, type QuizResultData } from "../../components/QuizResult";
 import type { Question } from "../../components/QuizSolving";
 import { generateQuiz } from "@/api/generateQuiz";
 import { toast } from "sonner";
+import { useShareQuiz } from "@/hooks/use-share-quiz";
+import { ShareDialog } from "@/components/ShareDialog";
 
 export function QuizResultPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [quizResult, setQuizResult] = useState<QuizResultData | null>(null);
 
+  // 공유 기능 hook 가져오기
+  const { sharingQuiz, openShareDialog, closeShareDialog } = useShareQuiz();
+
   useEffect(() => {
     // QuizSolvingPage에서 전달받은 데이터
-    const { questions, userAnswers, quizData } = location.state || {};
+    const { questions, userAnswers, quizId, submissionId } =
+      location.state || {};
 
     if (!questions || !userAnswers) {
       // 데이터가 없으면 홈으로 이동
@@ -28,11 +34,15 @@ export function QuizResultPage() {
       const correctAnswer = question.answer || "";
 
       // "모르겠어요" 체크 여부와 답안 확인
-      const userAnswerText = userAnswer?.dontKnow ? "모르겠어요" : (userAnswer?.answer || "");
+      const userAnswerText = userAnswer?.dontKnow
+        ? "모르겠어요"
+        : userAnswer?.answer || "";
 
       // 정답 비교 (대소문자 구분 없이, 공백 제거)
-      const isCorrect = !userAnswer?.dontKnow &&
-        userAnswerText.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
+      const isCorrect =
+        !userAnswer?.dontKnow &&
+        userAnswerText.trim().toLowerCase() ===
+          correctAnswer.trim().toLowerCase();
 
       if (isCorrect) {
         correctCount++;
@@ -45,7 +55,8 @@ export function QuizResultPage() {
         userAnswer: userAnswerText,
         correctAnswer: correctAnswer,
         isCorrect: isCorrect,
-        explanation: (question as any).explanation || "해설이 제공되지 않았습니다.",
+        explanation:
+          (question as any).explanation || "해설이 제공되지 않았습니다.",
         options: question.options,
       };
     });
@@ -54,12 +65,13 @@ export function QuizResultPage() {
     const score = Math.round((correctCount / questions.length) * 100);
 
     const result: QuizResultData = {
-      quizId: quizData?.quizId || `quiz-${Date.now()}`,
+      quizId: quizId,
       score: score,
       totalQuestions: questions.length,
       correctCount: correctCount,
       questions: gradedQuestions,
       submittedAt: new Date().toISOString(),
+      submissionId: submissionId,
     };
 
     setQuizResult(result);
@@ -120,8 +132,12 @@ export function QuizResultPage() {
       // 퀴즈 개수 검증
       const generatedCount = newQuizData?.quizzes?.length || 0;
       if (generatedCount !== quizCount) {
-        console.warn(`⚠️ 요청한 문제 개수(${quizCount})와 생성된 문제 개수(${generatedCount})가 다릅니다!`);
-        toast.warning(`${quizCount}개 요청했으나 ${generatedCount}개만 생성되었습니다.`);
+        console.warn(
+          `⚠️ 요청한 문제 개수(${quizCount})와 생성된 문제 개수(${generatedCount})가 다릅니다!`
+        );
+        toast.warning(
+          `${quizCount}개 요청했으나 ${generatedCount}개만 생성되었습니다.`
+        );
       }
 
       toast.dismiss();
@@ -136,8 +152,33 @@ export function QuizResultPage() {
     } catch (error) {
       toast.dismiss();
       console.error("퀴즈 생성 오류:", error);
-      toast.error(error instanceof Error ? error.message : "퀴즈 생성에 실패했습니다.");
+      toast.error(
+        error instanceof Error ? error.message : "퀴즈 생성에 실패했습니다."
+      );
     }
+  };
+
+  // 공유하기 버튼 핸들러
+  const handleShareClick = () => {
+    if (!quizResult) return;
+
+    const quizItemForSharing = {
+      id: quizResult.submissionId, // 제출 ID (임시로 생성 시간 사용)
+      quiz_id: quizResult.quizId, // 퀴즈 ID
+      score: quizResult.score,
+      correct_count: quizResult.correctCount,
+      total_count: quizResult.totalQuestions,
+      created_at: quizResult.submittedAt || new Date().toISOString(),
+      quizzes: {
+        // `quizzes` 테이블에서 직접 가져온 정보가 아니므로, 일부 정보는 알 수 없음
+        // 공유 기능에 필수적인 is_shared, shared_token은 DB에서 다시 조회되므로 여기서는 기본값을 넣음
+        title: "방금 푼 퀴즈", // 임시 제목
+        is_shared: false, // 기본값
+        shared_token: null, // 기본값
+      },
+    };
+
+    openShareDialog(quizItemForSharing as any);
   };
 
   // 퀴즈 결과가 로드되지 않았으면 로딩 표시
@@ -155,6 +196,14 @@ export function QuizResultPage() {
         result={quizResult}
         onRetryWrong={handleRetryWrong}
         onBackToHome={handleBackToHome}
+        onShare={handleShareClick}
+      />
+
+      <ShareDialog
+        open={!!sharingQuiz}
+        onClose={closeShareDialog}
+        quiz={sharingQuiz}
+        onStateChange={() => {}} // 결과 페이지에서는 상태를 실시간으로 업데이트할 필요가 없으므로 빈 함수 전달
       />
     </QuizLayout>
   );

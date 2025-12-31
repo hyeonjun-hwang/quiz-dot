@@ -3,12 +3,24 @@ import { useState } from "react"; // 상태 관리를 위한 React Hook
 import { useNavigate } from "react-router"; // 페이지 이동을 위한 React Router Hook
 
 // UI 컴포넌트들 (shadcn/ui 라이브러리)
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"; // 카드 레이아웃
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card"; // 카드 레이아웃
 import { Button } from "./ui/button"; // 버튼 컴포넌트
 import { Textarea } from "./ui/textarea"; // 텍스트 입력 영역
 import { Label } from "./ui/label"; // 라벨 컴포넌트
 import { Input } from "./ui/input"; // 파일 업로드 input
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"; // 드롭다운 선택
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select"; // 드롭다운 선택
 import { Checkbox } from "./ui/checkbox"; // 체크박스
 
 // 아이콘 및 알림 라이브러리
@@ -146,7 +158,9 @@ export function QuizCreation({
     } catch (err: unknown) {
       // ===== 4. 에러 처리 =====
       console.error("Quiz generation preparation error:", err);
-      toast.error(err instanceof Error ? err.message : "퀴즈 생성 준비에 실패했습니다");
+      toast.error(
+        err instanceof Error ? err.message : "퀴즈 생성 준비에 실패했습니다"
+      );
     }
   };
 
@@ -161,13 +175,14 @@ export function QuizCreation({
       <div className="flex items-center justify-between">
         <div>
           <h1>학습 자료 준비</h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-sm">
             텍스트를 입력하거나 PDF 파일을 업로드하세요
           </p>
         </div>
         {/* 남은 퀴즈 생성 횟수 (무료 사용자 제한) */}
-        <div className="text-sm text-muted-foreground">
-          남은 횟수: <span className="text-primary">{remainingQuizzes}회</span>
+        <div className="flex flex-col items-end text-xs text-muted-foreground">
+          <p>남은 횟수</p>
+          <p className="text-primary">{remainingQuizzes}회</p>
         </div>
       </div>
 
@@ -201,7 +216,9 @@ export function QuizCreation({
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">또는</span>
+              <span className="bg-background px-2 text-muted-foreground">
+                또는
+              </span>
             </div>
           </div>
 
@@ -296,7 +313,9 @@ export function QuizCreation({
             <Checkbox
               id="generate-summary"
               checked={generateSummary}
-              onCheckedChange={(checked) => setGenerateSummary(checked === true)}
+              onCheckedChange={(checked) =>
+                setGenerateSummary(checked === true)
+              }
             />
             <Label
               htmlFor="generate-summary"
