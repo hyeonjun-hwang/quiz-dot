@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSubscriptionStore } from "@/stores/subscription";
 import { supabase } from "@/utils/supabase";
@@ -10,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui";
 import { Badge } from "@/components/ui/badge";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 
 function Subscription() {
   // 1. 페이지 네비게이션
@@ -19,29 +18,9 @@ function Subscription() {
   const { subscription, setSubscription, setLoading, isLoading } =
     useSubscriptionStore();
 
-  // 2. 인증 체크 상태 (초기값 true)
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  // 인증 체크
-  useEffect(() => {
-    const checkUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        toast.error("로그인이 필요한 서비스입니다.");
-        navigate("/");
-        return;
-      }
-
-      // 세션이 확인되면 체크 완료
-      setIsCheckingAuth(false);
-    };
-    checkUser();
-  }, [navigate]);
-  // 3. 현재 구독 플랜 확인
+  // 2. 현재 구독 플랜 확인
   const isPro = subscription?.plan === "pro";
-  // 4. 업그레이드 처리
+  // 3. 업그레이드 처리
   const handleUpgradeClick = async () => {
     setLoading(true);
     try {
@@ -49,7 +28,9 @@ function Subscription() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        toast.error("로그인이 필요합니다.");
+        toast.error("세션이 만료되었습니다. 다시 로그인해주세요.", {
+          id: "auth-check",
+        });
         return;
       }
 
@@ -75,19 +56,18 @@ function Subscription() {
     }
   };
 
-  // 3. 인증 확인 중이거나 스토어 로딩 중이면 UI 노출 차단
-  if (isCheckingAuth || isLoading) {
+  // 4. 스토어 로딩 상태만 확인
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground animate-pulse">
-        보안 연결 및 사용자 정보 확인 중...
+        구독 정보 확인 중...
       </div>
     );
   }
 
-  // 4. 세션 확인이 끝난 후 UI가 렌더링
+  // 5. 세션 확인이 끝난 후 UI가 렌더링
   return (
     <div className="min-h-screen bg-background">
-      <Toaster position="top-center" />
       <div className="container max-w-4xl mx-auto p-4 space-y-6">
         <header className="py-4">
           <h1 className="text-2xl font-bold">구독 관리</h1>

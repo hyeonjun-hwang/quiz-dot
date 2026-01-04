@@ -84,8 +84,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // 성공 토스트 메시지 store에서 처리
       toast.success("로그인 성공!", { id: "auth-status" });
     } catch (err: any) {
-      toast.error(err.message || "로그인 실패", { id: "auth-status" });
-      set({ isLoading: false });
+      let errorMessage = "로그인 정보가 일치하지 않습니다.";
+
+      if (err.message.includes("Invalid login credentials")) {
+        errorMessage = "아이디 또는 비밀번호를 다시 확인해주세요.";
+      } else if (err.message.includes("Email not confirmed")) {
+        errorMessage = "이메일 인증이 완료되지 않았습니다.";
+      }
+      toast.error(errorMessage, { id: "auth-status" });
+      set({ isLoading: false, error: errorMessage });
     }
   },
   // 4-1. 구글 소셜 로그인
