@@ -16,14 +16,22 @@ import SubscriptionCancel from "./pages/sub/subscription-cancel.tsx";
 import { HistoryPage } from "./pages/History/HistoryPage.tsx";
 import { SharedQuizPage } from "./pages/Quiz/SharedQuizPage.tsx";
 import { ContactBoardPage } from "./pages/Contact/ContactBoardPage.tsx";
-import SigninPage from "./pages/auth/sign-in.tsx";
+import { ProtectedRoute } from "./components/auth/protect-route.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
         {/* 공통 레이아웃(네비게이션 바 등)이 적용되는 페이지들 */}
-        <Route element={<RootLayout />}>
+        {/* 로그인이 필요한 서비스  */}
+
+        <Route
+          element={
+            <ProtectedRoute>
+              <RootLayout />
+            </ProtectedRoute>
+          }
+        >
           {/* 퀴즈 생성 페이지 */}
           <Route path="/quiz/create" element={<QuizCreationPage />} />
 
@@ -51,13 +59,12 @@ createRoot(document.getElementById("root")!).render(
           />
         </Route>
 
-        {/* 레이아웃 없이 단독으로 보여줄 페이지 (로그인/구독 등) */}
+        {/* 레이아웃 없이 단독으로 보여줄 페이지 (로그인 등) */}
+
+        {/* 로그인페이지 */}
         <Route path="/" element={<App />} />
         {/* 콜백 페이지 */}
         <Route path="/auth/callback" element={<SignCallback />} />
-
-        <Route path="/sign-in" element={<SigninPage />} />
-        {/* <Route path="/sign-up" element={<Signup />} /> */}
 
         {/* 퀴즈 공유 페이지 */}
         <Route path="/shared/:shared_token" element={<SharedQuizPage />} />
