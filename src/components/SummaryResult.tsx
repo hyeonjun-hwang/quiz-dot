@@ -8,10 +8,11 @@ import type { QuizContent } from "@/types/quiz";
 interface SummaryResultProps {
   summary: string;
   onBack: () => void;
+  onRegenerateSummary: () => void;
   quizData?: QuizContent;
 }
 
-export function SummaryResult({ summary, onBack, quizData }: SummaryResultProps) {
+export function SummaryResult({ summary, onRegenerateSummary, quizData }: SummaryResultProps) {
   const navigate = useNavigate();
 
   const handleCopy = () => {
@@ -107,8 +108,9 @@ export function SummaryResult({ summary, onBack, quizData }: SummaryResultProps)
         </Button>
         <Button
           className="flex-1"
-          onClick={onBack}
+          onClick={onRegenerateSummary}
         >
+          <Sparkles className="mr-2 h-4 w-4" />
           새 요약 만들기
         </Button>
       </div>

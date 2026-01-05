@@ -43,6 +43,7 @@ export function QuizLoadingPage() {
               state: {
                 summary: quizData?.summary, // AI가 생성한 요약 텍스트
                 quizData: quizData, // 퀴즈 데이터도 함께 전달 (퀴즈 풀기 버튼용)
+                originalQuizRequest: quizRequest, // 원본 퀴즈 요청 데이터 (요약 재생성용)
               },
               replace: true, // 히스토리 스택에서 로딩 페이지를 교체
             });
