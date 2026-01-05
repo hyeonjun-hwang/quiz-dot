@@ -12,12 +12,12 @@ export function QuizSolvingPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuthStore();
+
+  // QuizLoadingPage에서 전달받은 퀴즈 데이터를 state에 저장하여 불변성 유지
+  const [quizData] = useState(location.state?.quizData);
   const [questions, setQuestions] = useState<Question[]>([]);
 
   useEffect(() => {
-    // QuizLoadingPage에서 전달받은 퀴즈 데이터
-    const quizData = location.state?.quizData;
-
     if (quizData && quizData.quizzes) {
       // API 응답 데이터를 Question 타입으로 변환
       const convertedQuestions: Question[] = quizData.quizzes.map(
@@ -34,16 +34,15 @@ export function QuizSolvingPage() {
       setQuestions(convertedQuestions);
     } else {
       // 퀴즈 데이터가 없으면 홈으로 이동
-      navigate("/");
+      navigate("/", { replace: true });
     }
-  }, [location.state, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 컴포넌트 마운트 시 한 번만 실행
 
   const handleSubmit = async (
     userAnswers: Record<string, { answer: string; dontKnow: boolean }>
   ) => {
     try {
-      const quizData = location.state?.quizData;
-
       // 사용자 답변을 UserAnswers 타입으로 변환 (dontKnow가 true면 "잘모르겠음", 아니면 answer)
       const formattedAnswers: UserAnswers = {};
       Object.keys(userAnswers).forEach((key) => {
@@ -123,7 +122,7 @@ export function QuizSolvingPage() {
         state: {
           questions: questions,
           userAnswers: userAnswers,
-          quizData: location.state?.quizData,
+          quizData: quizData,
         },
       });
     }

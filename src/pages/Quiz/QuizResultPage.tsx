@@ -3,15 +3,16 @@ import { useNavigate, useLocation } from "react-router";
 import { QuizLayout } from "@/components/layout/QuizLayout";
 import { QuizResult, type QuizResultData } from "../../components/QuizResult";
 import type { Question } from "../../components/QuizSolving";
-import { generateQuiz } from "@/api/generateQuiz";
 import { toast } from "sonner";
 import { useShareQuiz } from "@/hooks/use-share-quiz";
 import { ShareDialog } from "@/components/ShareDialog";
+import { useAuthStore } from "@/stores/auth";
 
 export function QuizResultPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [quizResult, setQuizResult] = useState<QuizResultData | null>(null);
+  const { user } = useAuthStore();
 
   // 공유 기능 hook 가져오기
   const { sharingQuiz, openShareDialog, closeShareDialog } = useShareQuiz();
@@ -100,72 +101,49 @@ export function QuizResultPage() {
       return;
     }
 
-    try {
-      console.log("=== 오답 다시 풀기 시작 ===");
-      console.log("틀린 문제 개수:", wrongQuestions.length);
-
-      const loadingToast = toast.loading("틀린 문제와 관련된 새로운 퀴즈를 생성하는 중...");
-
-      // 틀린 문제들을 학습 자료 텍스트로 변환
-      const wrongQuestionsText = wrongQuestions.join("\n\n");
-
-      // quizData에서 원본 설정 가져오기 (없으면 기본값 사용)
-      const quizType = quizData?.type || "multiple_choice";
-      const quizDifficulty = quizData?.difficulty || "medium";
-      const quizCount = wrongQuestions.length; // 틀린 문제 수만큼
-
-      console.log("요청할 퀴즈 개수:", quizCount);
-      console.log("퀴즈 타입:", quizType, "난이도:", quizDifficulty);
-
-      // 틀린 문제들을 기반으로 새로운 퀴즈 생성
-      const newQuizData = await generateQuiz({
-        text: wrongQuestionsText,
-        type: quizType,
-        count: quizCount,
-        difficulty: quizDifficulty,
-        failedQuestions: wrongQuestions,
-      });
-
-      console.log("생성된 퀴즈 개수:", newQuizData?.quizzes?.length || 0);
-
-      // 퀴즈 개수 검증
-      const generatedCount = newQuizData?.quizzes?.length || 0;
-
-      toast.dismiss(loadingToast);
-
-      if (generatedCount !== quizCount) {
-        console.warn(`⚠️ 요청한 문제 개수(${quizCount})와 생성된 문제 개수(${generatedCount})가 다릅니다!`
-        );
-        toast.warning(`${quizCount}개 요청했으나 ${generatedCount}개가 생성되었습니다.`
-        );
-      } else {
-        toast.success(`새로운 퀴즈 ${generatedCount}개가 생성되었습니다!`
-        );
-      }
-
-      // 생성된 퀴즈로 문제 풀이 페이지로 이동
-      navigate("/quiz/solving", {
-        state: {
-          quizData: newQuizData,
-        },
-      });
-    } catch (error) {
-      toast.dismiss();
-      console.error("퀴즈 생성 오류:", error);
-
-      const errorMessage = error instanceof Error ? error.message : "퀴즈 생성에 실패했습니다.";
-
-      // 네트워크 오류인 경우 더 명확한 메시지 제공
-      if (errorMessage.includes("Failed to send a request")) {
-        toast.error("네트워크 오류가 발생했습니다. 인터넷 연결을 확인하고 다시 시도해주세요.", {
-          duration: 5000,
-        });
-      } else {
-        toast.error(errorMessage, {
-          duration: 5000,
-        });
-      }
+    // PRO 사용자가 아니고 남은 횟수가 0인 경우 체크
+    const remainingQuizzes = user ? user.quiz_limit_daily - user.quiz_count_today : 0;
+    if (user?.subscription_plan !== "pro" && remainingQuizzes <= 0) {
+      toast.error("퀴즈 생성 횟수를 모두 사용했습니다. PRO 구독으로 무제한 이용하세요!");
+      navigate("/subscription");
+      return;
     }
+
+    // 틀린 문제들을 학습 자료 텍스트로 변환
+    const wrongQuestionsText = wrongQuestions.join("\n\n");
+
+    // quizData에서 원본 설정 가져오기 (없으면 기본값 사용)
+    const quizType = quizData?.type || "multiple_choice";
+    const quizDifficulty = quizData?.difficulty || "medium";
+    const quizCount = wrongQuestions.length; // 틀린 문제 수만큼
+
+    // 디버깅: 전달되는 데이터 확인
+    console.log("=== 오답 다시 풀기 디버깅 ===");
+    console.log("틀린 문제 개수:", wrongQuestions.length);
+    console.log("틀린 문제들:", wrongQuestions);
+    console.log("학습 자료 텍스트 길이:", wrongQuestionsText.length);
+    console.log("학습 자료 텍스트:", wrongQuestionsText);
+    console.log("퀴즈 요청 데이터:", {
+      text: wrongQuestionsText,
+      type: quizType,
+      count: quizCount,
+      difficulty: quizDifficulty,
+      failedQuestions: wrongQuestions,
+    });
+
+    // QuizLoadingPage로 이동하여 퀴즈 생성
+    navigate("/quiz/loading", {
+      state: {
+        quizRequest: {
+          text: wrongQuestionsText,
+          type: quizType,
+          count: quizCount,
+          difficulty: quizDifficulty,
+          failedQuestions: wrongQuestions,
+        },
+        generateSummary: false,
+      },
+    });
   };
 
   // 공유하기 버튼 핸들러

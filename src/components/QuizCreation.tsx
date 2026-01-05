@@ -112,6 +112,12 @@ export function QuizCreation({
       return;
     }
 
+    // 텍스트 최소 길이 검증 (50자 미만 불가)
+    if (text && text.trim().length > 0 && text.trim().length < 50) {
+      toast.error("텍스트는 최소 50자 이상 입력해주세요");
+      return;
+    }
+
     // 텍스트 길이 제한 검증 (5,000자 초과 불가)
     if (text.length > 5000) {
       toast.error("텍스트는 5,000자 이하로 입력해주세요");
@@ -143,6 +149,12 @@ export function QuizCreation({
           toast.error("PDF 변환 중 오류가 발생했습니다");
           return;
         }
+      }
+
+      // PDF 변환 후 최종 텍스트 길이 검증
+      if (combinedText.trim().length < 50) {
+        toast.error("학습 자료는 최소 50자 이상이어야 합니다");
+        return;
       }
 
       // ===== 3. 로딩 페이지로 즉시 이동 (API 호출 전) =====
@@ -207,12 +219,15 @@ export function QuizCreation({
             </Label>
             <Textarea
               id="text-input"
-              placeholder="학습할 내용을 입력하세요..."
+              placeholder="학습할 내용을 입력하세요... (최소 50자)"
               value={text}
               onChange={(e) => setText(e.target.value)}
               className="min-h-50 resize-none"
               maxLength={5000}
             />
+            <p className="text-xs text-muted-foreground">
+              최소 50자 이상, 최대 5,000자까지 입력 가능합니다
+            </p>
           </div>
 
           {/* 구분선 "또는" */}
