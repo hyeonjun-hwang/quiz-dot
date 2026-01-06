@@ -9,32 +9,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   session: null,
   isLoading: false,
+  isInitializing: true,
   error: null,
 
   // 1. 앱 초기화: 세션 확인 및 DB 유저 정보 결합
   initialize: async () => {
-    set({ isLoading: true, error: null });
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (session) {
-      const { data: profile, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
-
-      if (!error && profile) {
-        set({ session, user: profile as UserProfile, isLoading: false });
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        const { data: profile } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
+        set({ session, user: profile as UserProfile, isInitializing: false });
       } else {
-        set({ session, isLoading: false, error: "프로필 조회 실패" });
+        set({ session: null, user: null, isInitializing: false });
       }
-    } else {
-      set({ session: null, user: null, isLoading: false });
+    } catch (err) {
+      set({ isInitializing: false });
     }
   },
-
   // 2. 최신 유저 정보 갱신 (퀴즈 생성 후 호출)
   refreshUserProfile: async () => {
     const userId = get().user?.id;
@@ -64,6 +61,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
       if (error) throw error;
       alert("가입 확인 이메일이 발송되었습니다!");
+      set({ isLoading: false });
     } catch (err: any) {
       set({ error: err.message, isLoading: false });
     }
@@ -81,6 +79,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (error) throw error;
       // 로그인 성공 시 세션 정보를 바탕으로 초기화 실행
       await get().initialize();
+      set({ isLoading: false });
       // 성공 토스트 메시지 store에서 처리
       toast.success("로그인 성공!", { id: "auth-status" });
     } catch (err: any) {
@@ -97,6 +96,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   // 4-1. 구글 소셜 로그인
   signInWithGoogle: async () => {
+    set({ isLoading: true });
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -112,6 +112,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   // 4-2. 카카오 소셜 로그인
   signInWithKakao: async () => {
+    set({ isLoading: true });
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "kakao",
