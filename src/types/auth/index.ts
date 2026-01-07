@@ -14,6 +14,7 @@ export interface AuthState {
   user: UserProfile | null; // 로그인한 유저 정보 (public.users 연동)
   session: any | null; // Supabase Auth 세션
   isLoading: boolean; // 로딩 상태
+  isInitializing: boolean; // 초기화 상태
   error: string | null;
 
   // --- 액션 (Actions) ---

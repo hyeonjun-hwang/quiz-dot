@@ -1,26 +1,23 @@
-// src/components/auth/ProtectedRoute.tsx
-import { useEffect, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/auth";
+import type { ReactNode } from "react";
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
-  const navigate = useNavigate();
-  const { user, isLoading } = useAuthStore();
+  const { user, isInitializing } = useAuthStore();
 
-  useEffect(() => {
-    // 로딩이 끝났는데 유저가 없으면 홈으로 리다이렉트
-    if (!isLoading && !user) {
-      navigate("/", { replace: true });
-    }
-  }, [user, isLoading, navigate]);
-
-  if (isLoading) {
+  if (isInitializing) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        보안 확인 중...
+      <div className="flex h-screen w-full items-center justify-center">
+        <p>인증 확인 중...</p>
       </div>
     );
   }
 
-  return user ? <>{children}</> : null;
+  // 확인이 끝났는데 유저가 없으면 홈으로 리다이렉트
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  // 3. 로그인된 유저라면 통과
+  return <>{children}</>;
 }

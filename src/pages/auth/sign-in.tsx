@@ -95,7 +95,10 @@ export default function SigninPage() {
     },
   });
 
-  // 3. 제출 핸들러
+  // 3. 제출 상태
+  const isPending = form.formState.isSubmitting || isLoading;
+
+  // 4. 제출 핸들러
   async function onSubmit(values: AuthFormValues) {
     try {
       if (isLogin) {
@@ -119,7 +122,7 @@ export default function SigninPage() {
     }
   }
 
-  // 4. 모드 전환 시 데이터 초기화
+  // 5. 모드 전환 시 데이터 초기화
   const toggleMode = () => {
     setIsLogin(!isLogin);
     form.reset();
@@ -147,7 +150,7 @@ export default function SigninPage() {
               <Button
                 variant="outline"
                 onClick={signInWithGoogle}
-                disabled={isLoading}
+                disabled={isPending}
               >
                 <GoogleIcon className="mr-1 h-4 w-4" />
                 Google로 {isLogin ? "로그인" : "가입"}
@@ -156,7 +159,7 @@ export default function SigninPage() {
                 variant="outline"
                 className="bg-[#FEE500] hover:bg-[#FDD835] text-black border-none"
                 onClick={signInWithKakao}
-                disabled={isLoading}
+                disabled={isPending}
               >
                 <KakaoIcon className="mr-2 h-4 w-4" />
                 Kakao로 {isLogin ? "로그인" : "가입"}
@@ -186,7 +189,7 @@ export default function SigninPage() {
                           <Input
                             placeholder="이름을 입력해주세요"
                             {...field}
-                            disabled={isLoading}
+                            disabled={isPending}
                           />
                         </FormControl>
                         <FormMessage />
@@ -205,7 +208,7 @@ export default function SigninPage() {
                         <Input
                           placeholder="이메일을 입력해주세요"
                           {...field}
-                          disabled={isLoading}
+                          disabled={isPending}
                         />
                       </FormControl>
                       <FormMessage />
@@ -224,7 +227,7 @@ export default function SigninPage() {
                           type="password"
                           placeholder="비밀번호를 입력해주세요"
                           {...field}
-                          disabled={isLoading}
+                          disabled={isPending}
                         />
                       </FormControl>
                       <FormMessage />
@@ -244,7 +247,7 @@ export default function SigninPage() {
                             type="password"
                             placeholder="비밀번호를 다시 입력해주세요"
                             {...field}
-                            disabled={isLoading}
+                            disabled={isPending}
                           />
                         </FormControl>
                         <FormMessage />
@@ -253,8 +256,8 @@ export default function SigninPage() {
                   />
                 )}
 
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "처리 중..." : isLogin ? "로그인" : "회원가입"}
+                <Button type="submit" className="w-full" disabled={isPending}>
+                  {isPending ? "처리 중..." : isLogin ? "로그인" : "회원가입"}
                 </Button>
               </form>
             </Form>
@@ -267,7 +270,7 @@ export default function SigninPage() {
                 type="button"
                 onClick={toggleMode}
                 className="text-primary hover:underline font-semibold"
-                disabled={isLoading}
+                disabled={isPending}
               >
                 {isLogin ? "회원가입" : "로그인"}
               </button>
