@@ -43,7 +43,6 @@ function AppInitializer() {
         <Route path="/quiz/create" element={<QuizCreationPage />} />
 
         {/* 퀴즈 관련 경로 */}
-        <Route path="/quiz/loading" element={<QuizLoadingPage />} />
         <Route path="/quiz/solving" element={<QuizSolvingPage />} />
         <Route path="/quiz/result" element={<QuizResultPage />} />
 
@@ -67,6 +66,7 @@ function AppInitializer() {
       </Route>
 
       {/* 레이아웃 없이 단독으로 보여줄 페이지 (로그인 등) */}
+      <Route path="/quiz/loading" element={<QuizLoadingPage />} />
 
       {/* 로그인페이지 */}
       <Route path="/" element={<App />} />
