@@ -7,6 +7,8 @@ import { useNavigate } from "react-router";
 // 전역 상태 관리를 위한 스토어
 import { useAuthStore } from "@/stores/auth";
 import { useSubscriptionStore } from "@/stores/subscription";
+import { supabase } from "@/utils/supabase";
+import { toast } from "sonner";
 
 interface SideMenuProps {
   open: boolean;
@@ -44,6 +46,29 @@ export function SideMenu({ open, onClose }: SideMenuProps) {
     ? Math.max(0, subscription.quizLimitDaily - subscription.quizCountToday)
     : 0;
 
+  // 탈퇴 로직
+  const handleWithdrawal = async () => {
+    if (
+      confirm(
+        "정말로 탈퇴하시겠습니까? 모든 학습 데이터가 삭제되며 복구가 불가능합니다."
+      )
+    ) {
+      try {
+        // DB에 만든 RPC 함수 호출
+        const { error } = await supabase.rpc("delete_user_account");
+        if (error) throw error;
+
+        // 성공 시 로그아웃 및 세션 정리
+        await signOut();
+        onClose();
+        navigate("/");
+        toast.success("탈퇴가 완료되었습니다.");
+      } catch (err: any) {
+        console.error(err);
+        alert("탈퇴 처리 중 오류가 발생했습니다.");
+      }
+    }
+  };
   return (
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent side="right" className="w-75 sm:w-100 rounded-l-2xl">
@@ -123,6 +148,14 @@ export function SideMenu({ open, onClose }: SideMenuProps) {
           >
             <LogOut className="mr-2 h-4 w-4" /> 로그아웃
           </Button>
+
+          {/* 탈퇴 버튼  */}
+          <button
+            onClick={handleWithdrawal}
+            className="w-full text-[10px] text-muted-foreground hover:text-destructive mt-2 underline"
+          >
+            서비스 탈퇴하기
+          </button>
         </div>
       </SheetContent>
     </Sheet>

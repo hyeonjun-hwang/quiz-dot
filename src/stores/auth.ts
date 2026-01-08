@@ -19,17 +19,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         data: { session },
       } = await supabase.auth.getSession();
       if (session) {
-        const { data: profile } = await supabase
+        const { data: profile, error } = await supabase
           .from("users")
           .select("*")
           .eq("id", session.user.id)
-          .single();
-        set({ session, user: profile as UserProfile, isInitializing: false });
+          .maybeSingle();
+
+        if (error) throw error;
+
+        // 프로필이 있으면 저장, 없으면(인증전/탈퇴직후 등) null 유지
+        set({
+          session,
+          user: profile ? (profile as UserProfile) : null,
+          isInitializing: false,
+        });
       } else {
         set({ session: null, user: null, isInitializing: false });
       }
     } catch (err) {
-      set({ isInitializing: false });
+      console.error("Auth 초기화 실패:", err);
+      set({ isInitializing: false, session: null, user: null });
     }
   },
   // 2. 최신 유저 정보 갱신 (퀴즈 생성 후 호출)
@@ -41,7 +50,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       .from("users")
       .select("quiz_count_today, quiz_limit_daily, subscription_plan")
       .eq("id", userId)
-      .single();
+      .maybeSingle();
 
     if (!error && data) {
       set((state) => ({
